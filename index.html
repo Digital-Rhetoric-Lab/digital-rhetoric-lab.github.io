@@ -3,279 +3,439 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Keep Writing — Timed Freewriting</title>
+  <title>Keep Writing</title>
   <style>
     :root {
-      --bg: #f7f4ee;
+      --bg-1: #f8f1e7;
+      --bg-2: #edf3ff;
+      --bg-3: #ecfdf5;
       --paper: #fffaf0;
-      --ink: #1f2937;
+      --paper-strong: #fff7e6;
+      --ink: #111827;
       --muted: #6b7280;
-      --line: #e5dccb;
+      --soft: rgba(255, 250, 240, 0.78);
+      --soft-strong: rgba(255, 250, 240, 0.94);
+      --border: rgba(17, 24, 39, 0.12);
+      --border-strong: rgba(17, 24, 39, 0.2);
       --accent: #2563eb;
+      --accent-2: #7c3aed;
       --good: #10b981;
       --warn: #f59e0b;
       --bad: #dc2626;
+      --shadow: 0 24px 80px rgba(17, 24, 39, 0.16);
+      --shadow-soft: 0 16px 50px rgba(17, 24, 39, 0.11);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --focus: 0 0 0 4px rgba(37, 99, 235, 0.16);
+      --ui-font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --writer-font: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
     }
 
     * {
       box-sizing: border-box;
     }
 
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+    }
+
     body {
       margin: 0;
-      min-height: 100vh;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 32rem),
-        radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.14), transparent 28rem),
-        var(--bg);
-      color: var(--ink);
-      padding: 24px;
-    }
-
-    main {
-      width: min(1100px, 100%);
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: 320px 1fr;
-      gap: 20px;
-    }
-
-    header {
-      grid-column: 1 / -1;
-      margin-bottom: 4px;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: clamp(2.2rem, 6vw, 4.5rem);
-      line-height: 0.9;
-      letter-spacing: -0.06em;
-    }
-
-    .subtitle {
-      margin: 12px 0 0;
-      color: var(--muted);
-      font-size: 1.05rem;
-      max-width: 760px;
-    }
-
-    .panel,
-    .writer-card {
-      background: rgba(255, 250, 240, 0.9);
-      border: 1px solid rgba(31, 41, 55, 0.12);
-      border-radius: 24px;
-      box-shadow: 0 20px 50px rgba(31, 41, 55, 0.12);
       overflow: hidden;
+      color: var(--ink);
+      font-family: var(--ui-font);
+      background:
+        radial-gradient(circle at 16% 12%, rgba(37, 99, 235, 0.16), transparent 34rem),
+        radial-gradient(circle at 84% 8%, rgba(124, 58, 237, 0.11), transparent 32rem),
+        radial-gradient(circle at 70% 86%, rgba(16, 185, 129, 0.14), transparent 34rem),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2) 52%, var(--bg-3));
     }
 
-    .panel {
-      padding: 18px;
-    }
-
-    h2 {
-      margin: 0 0 12px;
-      font-size: 1.1rem;
-    }
-
-    label {
-      display: block;
-      margin: 16px 0 6px;
-      color: var(--muted);
-      font-size: 0.78rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-
+    button,
     input,
     select,
-    textarea,
-    button {
+    textarea {
       font: inherit;
     }
 
-    input,
-    select {
-      width: 100%;
-      padding: 11px 12px;
-      border-radius: 14px;
-      border: 1px solid var(--line);
-      background: #fffdf8;
-      color: var(--ink);
-    }
-
-    input:focus,
-    select:focus,
-    textarea:focus {
-      outline: none;
-      border-color: rgba(37, 99, 235, 0.6);
-      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
-    }
-
-    .two {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .buttons {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 18px;
-    }
-
     button {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .app {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      isolation: isolate;
+    }
+
+    .top-fade,
+    .bottom-fade {
+      pointer-events: none;
+      position: fixed;
+      left: 0;
+      right: 0;
+      z-index: 3;
+    }
+
+    .top-fade {
+      top: 0;
+      height: 120px;
+      background: linear-gradient(to bottom, rgba(248, 241, 231, 0.78), transparent);
+    }
+
+    .bottom-fade {
+      bottom: 0;
+      height: 120px;
+      background: linear-gradient(to top, rgba(236, 253, 245, 0.72), transparent);
+    }
+
+    .writer-shell {
+      position: absolute;
+      inset: 0;
+      padding: clamp(22px, 5vw, 72px);
+      padding-top: clamp(104px, 14vh, 148px);
+      padding-bottom: clamp(42px, 8vh, 92px);
+      z-index: 1;
+    }
+
+    #writer {
+      width: 100%;
+      height: 100%;
+      resize: none;
       border: 0;
-      border-radius: 15px;
-      padding: 12px 14px;
-      font-weight: 850;
-      cursor: pointer;
-    }
-
-    button:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-    }
-
-    .primary {
-      color: white;
-      background: linear-gradient(135deg, var(--accent), #1d4ed8);
-    }
-
-    .secondary {
+      outline: 0;
       color: var(--ink);
-      background: #ebe4d8;
+      background:
+        linear-gradient(to bottom, transparent 35px, rgba(177, 151, 111, 0.16) 36px),
+        linear-gradient(180deg, rgba(255, 250, 240, 0.72), rgba(255, 250, 240, 0.9));
+      background-size: 100% 36px, 100% 100%;
+      border-radius: clamp(22px, 3vw, 38px);
+      padding: clamp(24px, 4vw, 54px);
+      font-family: var(--writer-font);
+      font-size: clamp(1.3rem, 2.1vw, 2.15rem);
+      line-height: 36px;
+      letter-spacing: 0.005em;
+      box-shadow:
+        inset 0 0 0 1px rgba(17, 24, 39, 0.08),
+        0 26px 90px rgba(17, 24, 39, 0.12);
+      caret-color: var(--accent);
+      transition:
+        box-shadow 220ms ease,
+        background 220ms ease,
+        opacity 220ms ease,
+        filter 220ms ease;
     }
 
-    .danger {
-      color: white;
-      background: linear-gradient(135deg, var(--bad), #991b1b);
+    #writer::placeholder {
+      color: rgba(107, 114, 128, 0.62);
+      font-style: italic;
     }
 
-    .note {
-      margin-top: 18px;
-      padding: 14px;
-      border-radius: 18px;
-      background: rgba(37, 99, 235, 0.08);
-      color: #1e3a8a;
-      line-height: 1.45;
-      font-size: 0.95rem;
+    #writer:focus {
+      box-shadow:
+        inset 0 0 0 1px rgba(37, 99, 235, 0.26),
+        0 0 0 5px rgba(37, 99, 235, 0.1),
+        0 26px 90px rgba(17, 24, 39, 0.12);
     }
 
-    .stats {
+    #writer[disabled] {
+      opacity: 0.82;
+      filter: saturate(0.9);
+      cursor: default;
+    }
+
+    .hud {
+      position: fixed;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(760px, calc(100vw - 104px));
+      z-index: 5;
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      border-bottom: 1px solid rgba(31, 41, 55, 0.1);
-      background: rgba(255, 255, 255, 0.45);
-    }
-
-    .stat {
-      padding: 14px 16px;
-      border-right: 1px solid rgba(31, 41, 55, 0.08);
-    }
-
-    .stat:last-child {
-      border-right: 0;
-    }
-
-    .num {
-      font-size: 1.45rem;
-      font-weight: 900;
-      letter-spacing: -0.04em;
-    }
-
-    .label {
-      color: var(--muted);
-      font-size: 0.75rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .progress-area {
-      padding: 16px 18px 10px;
-    }
-
-    .progress-label {
-      display: flex;
-      justify-content: space-between;
       gap: 12px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: rgba(255, 250, 240, 0.78);
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(18px) saturate(1.25);
+      -webkit-backdrop-filter: blur(18px) saturate(1.25);
+    }
+
+    .hud-main {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .metric {
+      min-width: 0;
+      padding: 9px 10px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.48);
+      border: 1px solid rgba(17, 24, 39, 0.08);
+    }
+
+    .metric-value {
+      font-size: clamp(1.05rem, 2vw, 1.45rem);
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: -0.045em;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .metric-label {
+      margin-top: 4px;
       color: var(--muted);
+      font-size: 0.68rem;
+      font-weight: 850;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .progress-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .progress-copy {
+      min-width: 0;
+      color: var(--muted);
+      font-size: 0.88rem;
       font-weight: 800;
-      margin-bottom: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     #nextKey {
       color: var(--accent);
+      font-size: 0.9rem;
+      font-weight: 950;
       font-variant-numeric: tabular-nums;
+      white-space: nowrap;
     }
 
     .bar {
-      height: 16px;
-      border-radius: 999px;
-      background: #e6ddcf;
+      grid-column: 1 / -1;
+      position: relative;
+      height: 14px;
       overflow: hidden;
-      border: 1px solid rgba(31, 41, 55, 0.1);
+      border-radius: 999px;
+      background: rgba(17, 24, 39, 0.1);
+      box-shadow: inset 0 1px 2px rgba(17, 24, 39, 0.12);
     }
 
     #fill {
-      width: 0%;
       height: 100%;
+      width: 0%;
       border-radius: inherit;
-      background: linear-gradient(90deg, var(--good), var(--accent));
-      transition: width 80ms linear, background 160ms ease;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.36), transparent 34%),
+        linear-gradient(90deg, var(--good), var(--accent));
+      transition: width 70ms linear, background 160ms ease;
     }
 
     #fill.urgent {
-      background: linear-gradient(90deg, var(--warn), var(--bad));
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.32), transparent 34%),
+        linear-gradient(90deg, var(--warn), var(--bad));
     }
 
-    #status {
-      padding: 0 18px 14px;
+    .corner-actions {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      z-index: 8;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .icon-button {
+      width: 54px;
+      height: 54px;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      color: var(--ink);
+      background: rgba(255, 250, 240, 0.82);
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(18px) saturate(1.25);
+      -webkit-backdrop-filter: blur(18px) saturate(1.25);
+      cursor: pointer;
+      transition:
+        transform 130ms ease,
+        background 130ms ease,
+        box-shadow 130ms ease;
+    }
+
+    .icon-button:hover {
+      background: rgba(255, 250, 240, 0.96);
+      transform: translateY(-1px);
+      box-shadow: 0 18px 60px rgba(17, 24, 39, 0.16);
+    }
+
+    .icon-button:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .icon-button:focus-visible,
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+      outline: none;
+      box-shadow: var(--focus), var(--shadow-soft);
+    }
+
+    .gear {
+      width: 25px;
+      height: 25px;
+      display: block;
+    }
+
+    .prompt-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 22% 18%, rgba(37, 99, 235, 0.18), transparent 30rem),
+        radial-gradient(circle at 78% 76%, rgba(16, 185, 129, 0.16), transparent 28rem),
+        rgba(248, 241, 231, 0.72);
+      backdrop-filter: blur(18px) saturate(1.2);
+      -webkit-backdrop-filter: blur(18px) saturate(1.2);
+    }
+
+    .prompt-overlay.show {
+      display: grid;
+    }
+
+    .prompt-card {
+      width: min(820px, 100%);
+      border-radius: 34px;
+      padding: clamp(24px, 5vw, 48px);
+      background: rgba(255, 250, 240, 0.92);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 0.82rem;
+      font-weight: 950;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .prompt-title {
+      margin: 12px 0 12px;
+      font-size: clamp(2rem, 6vw, 4.5rem);
+      line-height: 0.92;
+      letter-spacing: -0.07em;
+      font-weight: 950;
+    }
+
+    .prompt-text {
+      margin: 18px auto 0;
+      max-width: 680px;
+      color: #374151;
+      font-family: var(--writer-font);
+      font-size: clamp(1.25rem, 2.5vw, 2rem);
+      line-height: 1.28;
+    }
+
+    .read-count {
+      margin-top: 24px;
       color: var(--muted);
-      min-height: 1.5rem;
+      font-weight: 850;
+      font-variant-numeric: tabular-nums;
     }
 
-    textarea {
-      width: 100%;
-      min-height: 520px;
-      resize: vertical;
+    .read-count strong {
+      color: var(--ink);
+      font-size: 1.35em;
+      letter-spacing: -0.04em;
+    }
+
+    .prompt-actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 28px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      min-height: 48px;
       border: 0;
-      padding: 26px;
-      color: #111827;
-      background:
-        linear-gradient(to bottom, transparent 31px, rgba(229, 220, 203, 0.75) 32px),
-        var(--paper);
-      background-size: 100% 32px;
-      line-height: 32px;
-      font-size: 1.15rem;
-      caret-color: var(--accent);
+      border-radius: 16px;
+      padding: 12px 18px;
+      font-weight: 900;
+      cursor: pointer;
+      transition:
+        transform 130ms ease,
+        filter 130ms ease,
+        opacity 130ms ease;
     }
 
-    textarea:disabled {
-      color: #4b5563;
-      background:
-        linear-gradient(to bottom, transparent 31px, rgba(229, 220, 203, 0.75) 32px),
-        #f2ecdf;
+    .btn:active {
+      transform: translateY(1px) scale(0.99);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      color: white;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    }
+
+    .btn-secondary {
+      color: var(--ink);
+      background: rgba(17, 24, 39, 0.08);
+    }
+
+    .btn-danger {
+      color: white;
+      background: linear-gradient(135deg, var(--bad), #991b1b);
     }
 
     .toast {
       position: fixed;
       left: 50%;
       bottom: 24px;
-      transform: translateX(-50%) translateY(100px);
+      z-index: 40;
+      max-width: min(720px, calc(100vw - 32px));
+      transform: translateX(-50%) translateY(120px);
       opacity: 0;
-      background: #111827;
-      color: white;
       padding: 12px 16px;
       border-radius: 999px;
-      font-weight: 800;
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
-      transition: 180ms ease;
-      max-width: min(90vw, 650px);
+      color: white;
+      background: rgba(17, 24, 39, 0.94);
+      box-shadow: 0 18px 55px rgba(17, 24, 39, 0.28);
+      font-weight: 850;
       text-align: center;
+      transition:
+        transform 190ms ease,
+        opacity 190ms ease;
     }
 
     .toast.show {
@@ -284,554 +444,1053 @@
     }
 
     dialog {
+      width: min(760px, calc(100vw - 30px));
+      max-height: min(820px, calc(100vh - 30px));
       border: 0;
-      border-radius: 24px;
-      width: min(640px, calc(100% - 32px));
-      background: var(--paper);
-      color: var(--ink);
-      box-shadow: 0 30px 80px rgba(31, 41, 55, 0.35);
+      border-radius: 30px;
       padding: 0;
+      color: var(--ink);
+      background: var(--soft-strong);
+      box-shadow: var(--shadow);
+      overflow: hidden;
     }
 
     dialog::backdrop {
-      background: rgba(17, 24, 39, 0.45);
+      background: rgba(17, 24, 39, 0.42);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
 
-    .modal {
-      padding: 22px;
-    }
-
-    .modal p {
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    #exportBox {
-      margin-top: 12px;
-      width: 100%;
-      min-height: 180px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 12px;
-      background: #fffdf8;
-      white-space: pre-wrap;
+    .dialog-body {
+      padding: 24px;
+      max-height: inherit;
       overflow: auto;
+    }
+
+    .dialog-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .dialog-title {
+      margin: 0;
+      font-size: 1.8rem;
+      letter-spacing: -0.05em;
+      line-height: 1;
+    }
+
+    .dialog-subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
       line-height: 1.45;
     }
 
-    @media (max-width: 850px) {
+    .close-x {
+      width: 42px;
+      height: 42px;
+      flex: 0 0 auto;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      color: var(--ink);
+      background: rgba(17, 24, 39, 0.06);
+      cursor: pointer;
+      font-size: 1.25rem;
+      line-height: 1;
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .field label {
+      display: block;
+      margin: 0 0 7px;
+      color: var(--muted);
+      font-size: 0.77rem;
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px 13px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.64);
+    }
+
+    .field textarea {
+      min-height: 112px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    .help {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.35;
+    }
+
+    .dialog-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .url-help {
+      margin-top: 20px;
+      padding: 14px;
+      border: 1px solid rgba(37, 99, 235, 0.16);
+      border-radius: 18px;
+      background: rgba(37, 99, 235, 0.07);
+      color: #1e3a8a;
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .url-help code {
+      padding: 2px 5px;
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.72);
+      color: #172554;
+      word-break: break-word;
+    }
+
+    .export-box {
+      width: 100%;
+      min-height: 260px;
+      max-height: 42vh;
+      overflow: auto;
+      white-space: pre-wrap;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.64);
+      font-family: var(--writer-font);
+      line-height: 1.45;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 760px) {
       body {
-        padding: 14px;
+        overflow: auto;
       }
 
-      main {
+      .app {
+        min-height: 100vh;
+      }
+
+      .writer-shell {
+        position: fixed;
+        padding: 132px 12px 14px;
+      }
+
+      .hud {
+        top: 10px;
+        left: 10px;
+        right: 76px;
+        width: auto;
+        transform: none;
+        padding: 10px;
+        border-radius: 20px;
+      }
+
+      .hud-main {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .metric {
+        padding: 8px;
+      }
+
+      .metric-value {
+        font-size: 1.05rem;
+      }
+
+      .metric-label {
+        font-size: 0.62rem;
+      }
+
+      .progress-copy {
+        font-size: 0.78rem;
+      }
+
+      .corner-actions {
+        top: 10px;
+        right: 10px;
+      }
+
+      .icon-button {
+        width: 54px;
+        height: 54px;
+      }
+
+      #writer {
+        border-radius: 24px;
+        padding: 22px;
+        font-size: 1.25rem;
+      }
+
+      .settings-grid {
         grid-template-columns: 1fr;
       }
 
-      .stats {
-        grid-template-columns: repeat(2, 1fr);
+      .dialog-body {
+        padding: 18px;
       }
+    }
 
-      textarea {
-        min-height: 420px;
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.001ms !important;
+        animation-duration: 0.001ms !important;
       }
     }
   </style>
 </head>
 <body>
-  <main>
-    <header>
-      <h1>Keep Writing</h1>
-      <p class="subtitle">
-        A no-delete freewriting timer for college writers. The goal is momentum, not perfection.
-        Keep typing; revise later.
-      </p>
-    </header>
+  <main class="app">
+    <div class="top-fade" aria-hidden="true"></div>
+    <div class="bottom-fade" aria-hidden="true"></div>
 
-    <aside class="panel">
-      <h2>Session setup</h2>
-
-      <label for="prompt">Prompt</label>
-      <select id="prompt">
-        <option value="I used to think writing was… but now I’m beginning to think…">
-          I used to think writing was…
-        </option>
-        <option value="Describe a time you changed your mind about something.">
-          A time I changed my mind
-        </option>
-        <option value="Write about a place on campus where you notice details others might miss.">
-          A place with overlooked details
-        </option>
-        <option value="What makes a piece of writing feel honest?">
-          What makes writing honest?
-        </option>
-        <option value="Explain something you know how to do, without stopping to edit.">
-          Explain something you know
-        </option>
-        <option value="">
-          Blank page
-        </option>
-      </select>
-
-      <div class="two">
-        <div>
-          <label for="minutes">Minutes</label>
-          <input id="minutes" type="number" min="1" max="60" value="10" />
+    <section class="hud" aria-label="Writing session stats">
+      <div class="hud-main">
+        <div class="metric">
+          <div id="timeLeft" class="metric-value">10:00</div>
+          <div class="metric-label">Time left</div>
         </div>
-        <div>
-          <label for="keyDelay">Key every seconds</label>
-          <input id="keyDelay" type="number" min="2" max="30" value="8" />
+        <div class="metric">
+          <div id="wordCount" class="metric-value">0</div>
+          <div class="metric-label">Words</div>
+        </div>
+        <div class="metric">
+          <div id="keyStreak" class="metric-value">0</div>
+          <div class="metric-label">Key streak</div>
+        </div>
+        <div class="metric">
+          <div id="pauseCount" class="metric-value">0</div>
+          <div class="metric-label">Pauses</div>
         </div>
       </div>
 
-      <div class="buttons">
-        <button id="startBtn" class="primary">Start</button>
-        <button id="pauseBtn" class="secondary" disabled>Pause</button>
-        <button id="finishBtn" class="secondary" disabled>Finish</button>
-        <button id="resetBtn" class="danger">Reset</button>
-      </div>
-
-      <div class="note">
-        <strong>Student reminder:</strong> if you get stuck, type
-        “I’m stuck because…” and keep going. This is raw material, not a final draft.
-      </div>
-    </aside>
-
-    <section class="writer-card">
-      <div class="stats">
-        <div class="stat">
-          <div id="timeLeft" class="num">10:00</div>
-          <div class="label">Time left</div>
-        </div>
-        <div class="stat">
-          <div id="words" class="num">0</div>
-          <div class="label">Words</div>
-        </div>
-        <div class="stat">
-          <div id="streak" class="num">0</div>
-          <div class="label">Key streak</div>
-        </div>
-        <div class="stat">
-          <div id="pauses" class="num">0</div>
-          <div class="label">Pauses</div>
-        </div>
-      </div>
-
-      <div class="progress-area">
-        <div class="progress-label">
-          <span>Time before next required keypress</span>
-          <span id="nextKey">--</span>
-        </div>
-        <div class="bar" role="progressbar" aria-label="Time before next keypress">
+      <div class="progress-row">
+        <div id="statusText" class="progress-copy">Open settings or press Start.</div>
+        <div id="nextKey">--</div>
+        <div
+          class="bar"
+          role="progressbar"
+          aria-label="Time before next required keypress"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+        >
           <div id="fill"></div>
         </div>
       </div>
+    </section>
 
-      <div id="status">Choose a prompt and press Start.</div>
+    <div class="corner-actions">
+      <button id="settingsButton" class="icon-button" type="button" aria-label="Open settings">
+        <svg class="gear" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            fill="currentColor"
+            d="M19.43 12.98c.04-.32.07-.65.07-.98s-.02-.66-.07-.98l2.11-1.65a.5.5 0 0 0 .12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1a7.4 7.4 0 0 0-1.69-.98L14.5 2.42A.5.5 0 0 0 14 2h-4a.5.5 0 0 0-.5.42L9.12 5.07c-.6.23-1.16.55-1.69.98l-2.49-1a.5.5 0 0 0-.61.22l-2 3.46a.5.5 0 0 0 .12.64l2.11 1.65c-.04.32-.06.65-.06.98s.02.66.06.98l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46c.13.22.39.31.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.38-2.65c.61-.25 1.17-.58 1.69-.98l2.49 1c.22.09.48 0 .61-.22l2-3.46a.5.5 0 0 0-.12-.64l-2.11-1.65ZM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5Z"
+          />
+        </svg>
+      </button>
+    </div>
 
+    <section class="writer-shell">
       <textarea
         id="writer"
         disabled
         spellcheck="true"
+        autocomplete="off"
+        autocorrect="on"
+        autocapitalize="sentences"
         placeholder="Your freewrite will begin here…"
+        aria-label="Freewriting area"
       ></textarea>
     </section>
   </main>
 
-  <div id="toast" class="toast" role="status" aria-live="assertive"></div>
+  <section id="promptOverlay" class="prompt-overlay" aria-modal="true" role="dialog" aria-label="Prompt reading screen">
+    <div class="prompt-card">
+      <div class="eyebrow">Read the prompt</div>
+      <div class="prompt-title">Get ready to write</div>
+      <div id="overlayPrompt" class="prompt-text"></div>
+      <div id="readCountdown" class="read-count">
+        Starting in <strong>10</strong> seconds
+      </div>
+      <div class="prompt-actions">
+        <button id="startNowButton" class="btn btn-primary" type="button">Start now</button>
+        <button id="cancelReadButton" class="btn btn-secondary" type="button">Cancel</button>
+      </div>
+    </div>
+  </section>
 
-  <dialog id="doneDialog">
-    <div class="modal">
-      <h2>Session complete</h2>
-      <p id="summary"></p>
-      <p>
-        Copy this raw draft into your notes or course system. Now you can revise,
-        reorganize, and clean it up.
-      </p>
-      <div id="exportBox" tabindex="0"></div>
-      <div class="buttons">
-        <button id="copyBtn" class="primary">Copy draft</button>
-        <button id="closeDialogBtn" class="secondary">Close</button>
+  <dialog id="settingsDialog">
+    <div class="dialog-body">
+      <div class="dialog-header">
+        <div>
+          <h2 class="dialog-title">Settings</h2>
+          <p class="dialog-subtitle">
+            Configure the freewrite. These settings can also be loaded from URL parameters.
+          </p>
+        </div>
+        <button id="closeSettingsButton" class="close-x" type="button" aria-label="Close settings">×</button>
+      </div>
+
+      <div class="settings-grid">
+        <div class="field">
+          <label for="minutesInput">Minutes</label>
+          <input id="minutesInput" type="number" min="1" max="180" step="1" value="10" />
+        </div>
+
+        <div class="field">
+          <label for="keyEveryInput">Key every seconds</label>
+          <input id="keyEveryInput" type="number" min="2" max="60" step="1" value="8" />
+        </div>
+
+        <div class="field">
+          <label for="readInput">Prompt read seconds</label>
+          <input id="readInput" type="number" min="0" max="120" step="1" value="10" />
+        </div>
+
+        <div class="field">
+          <label for="strictInput">Editing rule</label>
+          <select id="strictInput">
+            <option value="strict">Strict: block paste, cut, undo, delete</option>
+            <option value="gentle">Gentle: allow paste, block deleting</option>
+          </select>
+        </div>
+
+        <div class="field full">
+          <label for="promptInput">Prompt</label>
+          <textarea id="promptInput">I used to think writing was… but now I’m beginning to think…</textarea>
+          <div class="help">
+            The prompt appears before an autostart session and is inserted at the top of a blank draft.
+          </div>
+        </div>
+      </div>
+
+      <div class="dialog-actions">
+        <button id="resetButton" class="btn btn-danger" type="button">Reset draft</button>
+        <button id="finishButton" class="btn btn-secondary" type="button" disabled>Finish</button>
+        <button id="pauseButton" class="btn btn-secondary" type="button" disabled>Pause</button>
+        <button id="startButton" class="btn btn-primary" type="button">Start</button>
+      </div>
+
+      <div class="url-help">
+        <strong>URL parameters:</strong>
+        <code>minutes</code> or <code>m</code>,
+        <code>keyEvery</code> or <code>k</code>,
+        <code>prompt</code> or <code>p</code>,
+        <code>autostart=1</code> or <code>start=1</code>,
+        <code>read</code>,
+        <code>strict=strict</code> or <code>strict=gentle</code>.
+        <br />
+        Example:
+        <code>?minutes=10&amp;keyEvery=8&amp;prompt=Write%20about%20a%20time%20you%20changed%20your%20mind.&amp;autostart=1&amp;read=12</code>
       </div>
     </div>
   </dialog>
 
+  <dialog id="doneDialog">
+    <div class="dialog-body">
+      <div class="dialog-header">
+        <div>
+          <h2 class="dialog-title">Session complete</h2>
+          <p id="summaryText" class="dialog-subtitle"></p>
+        </div>
+        <button id="closeDoneButton" class="close-x" type="button" aria-label="Close summary">×</button>
+      </div>
+
+      <div id="exportBox" class="export-box" tabindex="0"></div>
+
+      <div class="dialog-actions">
+        <button id="copyButton" class="btn btn-primary" type="button">Copy draft</button>
+        <button id="newSessionButton" class="btn btn-secondary" type="button">New session</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="assertive"></div>
+
   <script>
-    const $ = id => document.getElementById(id);
+    (() => {
+      "use strict";
 
-    const els = {
-      prompt: $("prompt"),
-      minutes: $("minutes"),
-      keyDelay: $("keyDelay"),
-      startBtn: $("startBtn"),
-      pauseBtn: $("pauseBtn"),
-      finishBtn: $("finishBtn"),
-      resetBtn: $("resetBtn"),
-      writer: $("writer"),
-      timeLeft: $("timeLeft"),
-      words: $("words"),
-      streak: $("streak"),
-      pauses: $("pauses"),
-      nextKey: $("nextKey"),
-      fill: $("fill"),
-      status: $("status"),
-      toast: $("toast"),
-      doneDialog: $("doneDialog"),
-      summary: $("summary"),
-      exportBox: $("exportBox"),
-      copyBtn: $("copyBtn"),
-      closeDialogBtn: $("closeDialogBtn")
-    };
+      const $ = id => document.getElementById(id);
 
-    let active = false;
-    let paused = false;
-    let durationMs = 10 * 60 * 1000;
-    let keyDelayMs = 8 * 1000;
-    let endAt = 0;
-    let lastKeyAt = 0;
-    let pauseStartedAt = 0;
-    let timer = null;
+      const els = {
+        writer: $("writer"),
+        timeLeft: $("timeLeft"),
+        wordCount: $("wordCount"),
+        keyStreak: $("keyStreak"),
+        pauseCount: $("pauseCount"),
+        statusText: $("statusText"),
+        nextKey: $("nextKey"),
+        fill: $("fill"),
+        settingsButton: $("settingsButton"),
+        settingsDialog: $("settingsDialog"),
+        closeSettingsButton: $("closeSettingsButton"),
+        minutesInput: $("minutesInput"),
+        keyEveryInput: $("keyEveryInput"),
+        readInput: $("readInput"),
+        strictInput: $("strictInput"),
+        promptInput: $("promptInput"),
+        startButton: $("startButton"),
+        pauseButton: $("pauseButton"),
+        finishButton: $("finishButton"),
+        resetButton: $("resetButton"),
+        promptOverlay: $("promptOverlay"),
+        overlayPrompt: $("overlayPrompt"),
+        readCountdown: $("readCountdown"),
+        startNowButton: $("startNowButton"),
+        cancelReadButton: $("cancelReadButton"),
+        doneDialog: $("doneDialog"),
+        closeDoneButton: $("closeDoneButton"),
+        summaryText: $("summaryText"),
+        exportBox: $("exportBox"),
+        copyButton: $("copyButton"),
+        newSessionButton: $("newSessionButton"),
+        toast: $("toast")
+      };
 
-    let lastValidText = "";
-    let keyStreak = 0;
-    let pauseCount = 0;
-    let pauseAlreadyMarked = false;
+      const state = {
+        active: false,
+        paused: false,
+        timerId: 0,
+        readTimerId: 0,
+        durationMs: 10 * 60 * 1000,
+        keyEveryMs: 8 * 1000,
+        startAt: 0,
+        endAt: 0,
+        lastKeyAt: 0,
+        pausedAt: 0,
+        lastValidText: "",
+        keyStreak: 0,
+        pauses: 0,
+        pauseAlreadyMarked: false,
+        readEndsAt: 0
+      };
 
-    function clamp(value, min, max) {
-      return Math.min(max, Math.max(min, value));
-    }
+      function clamp(value, min, max) {
+        const number = Number(value);
+        if (!Number.isFinite(number)) return min;
+        return Math.min(max, Math.max(min, number));
+      }
 
-    function formatTime(ms) {
-      const total = Math.max(0, Math.ceil(ms / 1000));
-      const minutes = Math.floor(total / 60);
-      const seconds = total % 60;
-      return minutes + ":" + String(seconds).padStart(2, "0");
-    }
+      function boolParam(value) {
+        if (value == null) return false;
+        return ["1", "true", "yes", "y", "on"].includes(String(value).trim().toLowerCase());
+      }
 
-    function countWords(text) {
-      const matches = text.trim().match(/[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu);
-      return matches ? matches.length : 0;
-    }
+      function formatTime(ms) {
+        const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
 
-    function showToast(message) {
-      els.toast.textContent = message;
-      els.toast.classList.add("show");
-      clearTimeout(showToast.timer);
-      showToast.timer = setTimeout(() => {
-        els.toast.classList.remove("show");
-      }, 1700);
-    }
+        if (hours > 0) {
+          return (
+            hours +
+            ":" +
+            String(minutes).padStart(2, "0") +
+            ":" +
+            String(seconds).padStart(2, "0")
+          );
+        }
 
-    function updateStats() {
-      els.words.textContent = countWords(els.writer.value);
-      els.streak.textContent = keyStreak;
-      els.pauses.textContent = pauseCount;
-    }
+        return minutes + ":" + String(seconds).padStart(2, "0");
+      }
 
-    function updateButtons() {
-      els.startBtn.disabled = active && !paused;
-      els.pauseBtn.disabled = !active;
-      els.finishBtn.disabled = !active;
-      els.pauseBtn.textContent = paused ? "Resume" : "Pause";
-    }
+      function countWords(text) {
+        const matches = text
+          .trim()
+          .match(/[\p{L}\p{N}]+(?:['’.-][\p{L}\p{N}]+)*/gu);
+        return matches ? matches.length : 0;
+      }
 
-    function lockWriter(locked) {
-      els.writer.disabled = locked;
-    }
+      function showToast(message) {
+        els.toast.textContent = message;
+        els.toast.classList.add("show");
 
-    function tick() {
-      if (!active || paused) return;
+        clearTimeout(showToast.timeout);
+        showToast.timeout = setTimeout(() => {
+          els.toast.classList.remove("show");
+        }, 1800);
+      }
 
-      const now = Date.now();
-      const remaining = endAt - now;
-      const untilKey = lastKeyAt + keyDelayMs - now;
+      function openDialog(dialog) {
+        if (typeof dialog.showModal === "function") {
+          if (!dialog.open) dialog.showModal();
+        } else {
+          dialog.setAttribute("open", "");
+        }
+      }
 
-      els.timeLeft.textContent = formatTime(remaining);
+      function closeDialog(dialog) {
+        if (dialog.open) dialog.close();
+      }
 
-      const progress = clamp(
-        ((keyDelayMs - Math.max(0, untilKey)) / keyDelayMs) * 100,
-        0,
-        100
-      );
+      function readSettings() {
+        const minutes = clamp(parseInt(els.minutesInput.value, 10), 1, 180);
+        const keyEvery = clamp(parseInt(els.keyEveryInput.value, 10), 2, 60);
+        const readSeconds = clamp(parseInt(els.readInput.value, 10), 0, 120);
 
-      els.fill.style.width = progress + "%";
-      els.fill.classList.toggle("urgent", untilKey <= 2500);
-      els.nextKey.textContent = untilKey > 0
-        ? Math.ceil(untilKey / 1000) + "s"
-        : "type now";
+        els.minutesInput.value = String(minutes);
+        els.keyEveryInput.value = String(keyEvery);
+        els.readInput.value = String(readSeconds);
 
-      if (untilKey <= 0 && !pauseAlreadyMarked) {
-        pauseAlreadyMarked = true;
-        pauseCount += 1;
+        return {
+          minutes,
+          keyEvery,
+          readSeconds,
+          prompt: els.promptInput.value.trim(),
+          strict: els.strictInput.value === "gentle" ? "gentle" : "strict"
+        };
+      }
 
-        els.writer.value += "\n[Pause — restart with the next word.]\n";
-        lastValidText = els.writer.value;
-        els.writer.selectionStart = els.writer.selectionEnd = els.writer.value.length;
+      function syncDurationPreview() {
+        if (!state.active) {
+          const settings = readSettings();
+          els.timeLeft.textContent = formatTime(settings.minutes * 60 * 1000);
+        }
+      }
 
-        els.status.textContent = "You paused. No penalty — type the next honest sentence.";
-        showToast("Pause marked. Keep going.");
+      function updateStats() {
+        els.wordCount.textContent = String(countWords(els.writer.value));
+        els.keyStreak.textContent = String(state.keyStreak);
+        els.pauseCount.textContent = String(state.pauses);
+      }
+
+      function updateButtons() {
+        els.startButton.disabled = state.active && !state.paused;
+        els.pauseButton.disabled = !state.active;
+        els.finishButton.disabled = !state.active;
+
+        els.pauseButton.textContent = state.paused ? "Resume" : "Pause";
+      }
+
+      function setWriterEnabled(enabled) {
+        els.writer.disabled = !enabled;
+      }
+
+      function moveCaretToEnd() {
+        const end = els.writer.value.length;
+        try {
+          els.writer.selectionStart = end;
+          els.writer.selectionEnd = end;
+        } catch {
+          // Ignore selection failures on older browsers.
+        }
+      }
+
+      function insertPauseMarker() {
+        const marker = "\n[Pause — keep going from here.]\n";
+
+        els.writer.value += marker;
+        state.lastValidText = els.writer.value;
+        moveCaretToEnd();
         updateStats();
       }
 
-      if (remaining <= 0) {
-        finishSession();
-      }
-    }
+      function placePromptIfBlank(prompt) {
+        if (els.writer.value.trim()) return;
 
-    function startSession() {
-      const minutes = clamp(parseInt(els.minutes.value, 10) || 10, 1, 60);
-      const seconds = clamp(parseInt(els.keyDelay.value, 10) || 8, 2, 30);
+        if (prompt) {
+          els.writer.value = prompt + "\n\n";
+        } else {
+          els.writer.value = "";
+        }
 
-      durationMs = minutes * 60 * 1000;
-      keyDelayMs = seconds * 1000;
-
-      active = true;
-      paused = false;
-      endAt = Date.now() + durationMs;
-      lastKeyAt = Date.now();
-
-      keyStreak = 0;
-      pauseCount = 0;
-      pauseAlreadyMarked = false;
-
-      if (!els.writer.value.trim()) {
-        const prompt = els.prompt.value;
-        els.writer.value = prompt ? prompt + "\n\n" : "";
+        state.lastValidText = els.writer.value;
       }
 
-      lastValidText = els.writer.value;
+      function tick() {
+        if (!state.active || state.paused) return;
 
-      lockWriter(false);
-      els.writer.focus();
-      els.writer.selectionStart = els.writer.selectionEnd = els.writer.value.length;
+        const now = Date.now();
+        const remaining = state.endAt - now;
+        const untilKey = state.lastKeyAt + state.keyEveryMs - now;
+        const progress = clamp(
+          ((state.keyEveryMs - Math.max(0, untilKey)) / state.keyEveryMs) * 100,
+          0,
+          100
+        );
 
-      els.status.textContent = "Freewriting in progress. Do not stop to fix anything.";
-      updateButtons();
-      updateStats();
+        els.timeLeft.textContent = formatTime(remaining);
+        els.nextKey.textContent = untilKey > 0
+          ? Math.ceil(untilKey / 1000) + "s"
+          : "type now";
 
-      clearInterval(timer);
-      timer = setInterval(tick, 100);
-      tick();
-    }
+        els.fill.style.width = progress + "%";
+        els.fill.classList.toggle("urgent", untilKey <= 2500);
+        els.fill.parentElement.setAttribute("aria-valuenow", String(Math.round(progress)));
 
-    function pauseOrResume() {
-      if (!active) return;
+        if (untilKey <= 0 && !state.pauseAlreadyMarked) {
+          state.pauseAlreadyMarked = true;
+          state.pauses += 1;
+          insertPauseMarker();
+          els.statusText.textContent = "Pause marked. Start again with the next word.";
+          showToast("Pause marked. No penalty — keep going.");
+        }
 
-      if (!paused) {
-        paused = true;
-        pauseStartedAt = Date.now();
-        lockWriter(true);
-        els.status.textContent = "Paused. Resume when ready.";
+        if (remaining <= 0) {
+          finishSession();
+        }
+      }
+
+      function beginSession() {
+        const settings = readSettings();
+
+        clearInterval(state.timerId);
+
+        state.active = true;
+        state.paused = false;
+        state.durationMs = settings.minutes * 60 * 1000;
+        state.keyEveryMs = settings.keyEvery * 1000;
+        state.startAt = Date.now();
+        state.endAt = state.startAt + state.durationMs;
+        state.lastKeyAt = Date.now();
+        state.keyStreak = 0;
+        state.pauses = 0;
+        state.pauseAlreadyMarked = false;
+
+        placePromptIfBlank(settings.prompt);
+
+        setWriterEnabled(true);
+        updateButtons();
+        updateStats();
+
+        els.statusText.textContent = "Write forward. Do not stop to fix anything.";
+        els.nextKey.textContent = Math.ceil(state.keyEveryMs / 1000) + "s";
+        els.fill.style.width = "0%";
+        els.fill.classList.remove("urgent");
+
+        closeDialog(els.settingsDialog);
+        els.promptOverlay.classList.remove("show");
+
+        requestAnimationFrame(() => {
+          els.writer.focus();
+          moveCaretToEnd();
+        });
+
+        state.timerId = setInterval(tick, 100);
+        tick();
+      }
+
+      function startWithPromptReading() {
+        const settings = readSettings();
+
+        if (settings.readSeconds <= 0) {
+          beginSession();
+          return;
+        }
+
+        clearInterval(state.readTimerId);
+
+        els.overlayPrompt.textContent = settings.prompt || "Begin with whatever is on your mind.";
+        els.promptOverlay.classList.add("show");
+
+        state.readEndsAt = Date.now() + settings.readSeconds * 1000;
+
+        function readTick() {
+          const remaining = Math.max(0, Math.ceil((state.readEndsAt - Date.now()) / 1000));
+          els.readCountdown.innerHTML =
+            "Starting in <strong>" + remaining + "</strong> second" + (remaining === 1 ? "" : "s");
+
+          if (remaining <= 0) {
+            clearInterval(state.readTimerId);
+            beginSession();
+          }
+        }
+
+        readTick();
+        state.readTimerId = setInterval(readTick, 120);
+      }
+
+      function pauseOrResume() {
+        if (!state.active) return;
+
+        if (!state.paused) {
+          state.paused = true;
+          state.pausedAt = Date.now();
+          setWriterEnabled(false);
+          clearInterval(state.timerId);
+          els.statusText.textContent = "Paused.";
+          els.nextKey.textContent = "paused";
+        } else {
+          const pausedFor = Date.now() - state.pausedAt;
+          state.endAt += pausedFor;
+          state.lastKeyAt = Date.now();
+          state.pauseAlreadyMarked = false;
+          state.paused = false;
+          setWriterEnabled(true);
+          els.statusText.textContent = "Back in motion. Keep writing.";
+          state.timerId = setInterval(tick, 100);
+
+          requestAnimationFrame(() => {
+            els.writer.focus();
+            moveCaretToEnd();
+          });
+
+          tick();
+        }
+
+        updateButtons();
+      }
+
+      function finishSession() {
+        if (!state.active) return;
+
+        state.active = false;
+        state.paused = false;
+
+        clearInterval(state.timerId);
+        clearInterval(state.readTimerId);
+
+        setWriterEnabled(false);
+        updateButtons();
+        updateStats();
+
+        els.timeLeft.textContent = "0:00";
+        els.nextKey.textContent = "done";
+        els.fill.style.width = "100%";
+        els.fill.classList.remove("urgent");
+        els.statusText.textContent = "Done. Copy your draft, then revise elsewhere.";
+
+        const words = countWords(els.writer.value);
+        const minutes = Math.round(state.durationMs / 60000);
+
+        els.summaryText.textContent =
+          "You wrote " +
+          words +
+          " word" +
+          (words === 1 ? "" : "s") +
+          " in about " +
+          minutes +
+          " minute" +
+          (minutes === 1 ? "" : "s") +
+          ", with " +
+          state.pauses +
+          " marked pause" +
+          (state.pauses === 1 ? "" : "s") +
+          ".";
+
+        els.exportBox.textContent = els.writer.value;
+        openDialog(els.doneDialog);
+      }
+
+      function resetDraft({ ask = true } = {}) {
+        const shouldAsk = ask && (state.active || els.writer.value.trim().length > 0);
+
+        if (shouldAsk && !confirm("Reset this draft? The current text will be cleared.")) {
+          return;
+        }
+
+        state.active = false;
+        state.paused = false;
+
+        clearInterval(state.timerId);
+        clearInterval(state.readTimerId);
+
+        els.promptOverlay.classList.remove("show");
+        els.writer.value = "";
+        state.lastValidText = "";
+        state.keyStreak = 0;
+        state.pauses = 0;
+        state.pauseAlreadyMarked = false;
+
+        setWriterEnabled(false);
+        syncDurationPreview();
+        updateButtons();
+        updateStats();
+
+        els.nextKey.textContent = "--";
+        els.fill.style.width = "0%";
+        els.fill.classList.remove("urgent");
+        els.fill.parentElement.setAttribute("aria-valuenow", "0");
+        els.statusText.textContent = "Open settings or press Start.";
+      }
+
+      function blockEdit(event, message) {
+        event.preventDefault();
+        showToast(message);
+      }
+
+      function handleKeydown(event) {
+        if (!state.active || state.paused) return;
+
+        const key = event.key;
+        const lower = key.toLowerCase();
+        const ctrl = event.ctrlKey || event.metaKey;
+        const settings = readSettings();
+
+        const forbidden =
+          key === "Backspace" ||
+          key === "Delete" ||
+          (ctrl && lower === "z") ||
+          (ctrl && lower === "y") ||
+          (ctrl && lower === "x");
+
+        const strictForbidden =
+          settings.strict === "strict" &&
+          (
+            (ctrl && lower === "v") ||
+            (ctrl && lower === "a")
+          );
+
+        const navigation =
+          key === "ArrowLeft" ||
+          key === "ArrowRight" ||
+          key === "ArrowUp" ||
+          key === "ArrowDown" ||
+          key === "Home" ||
+          key === "End" ||
+          key === "PageUp" ||
+          key === "PageDown";
+
+        if (forbidden) {
+          blockEdit(event, "No deleting during freewriting. Keep moving forward.");
+          return;
+        }
+
+        if (strictForbidden) {
+          blockEdit(event, "Strict mode blocks paste and select-all. Use the next word.");
+          return;
+        }
+
+        if (navigation) {
+          blockEdit(event, "Stay at the end. Freewriting moves forward.");
+        }
+      }
+
+      function handleBeforeInput(event) {
+        if (!state.active || state.paused) return;
+
+        const settings = readSettings();
+        const inputType = event.inputType || "";
+
+        const blockedTypes = [
+          "deleteContentBackward",
+          "deleteContentForward",
+          "deleteByCut",
+          "deleteByDrag",
+          "historyUndo",
+          "historyRedo"
+        ];
+
+        if (blockedTypes.includes(inputType)) {
+          blockEdit(event, "No deleting during freewriting. Keep moving forward.");
+          return;
+        }
+
+        if (settings.strict === "strict" && inputType.includes("insertFromPaste")) {
+          blockEdit(event, "Strict mode blocks paste. Type through the thought.");
+        }
+      }
+
+      function handleInput() {
+        if (!state.active || state.paused) return;
+
+        const current = els.writer.value;
+
+        /*
+          Robust anti-delete / anti-back-edit safeguard:
+          The only valid state is the previous text plus new text at the end.
+          If a browser, IME, spellcheck action, or context menu changes earlier
+          text or shortens the draft, restore the last known valid version.
+        */
+        if (
+          current.length < state.lastValidText.length ||
+          !current.startsWith(state.lastValidText)
+        ) {
+          els.writer.value = state.lastValidText;
+          moveCaretToEnd();
+          showToast("Edit blocked. This draft only moves forward.");
+          return;
+        }
+
+        state.lastValidText = current;
+        state.lastKeyAt = Date.now();
+        state.pauseAlreadyMarked = false;
+        state.keyStreak += 1;
+
+        els.statusText.textContent = "Good. Keep writing — polish comes later.";
+
+        updateStats();
+        tick();
+      }
+
+      function applyUrlParams() {
+        const params = new URLSearchParams(window.location.search);
+
+        const minutes = params.get("minutes") ?? params.get("m");
+        const keyEvery = params.get("keyEvery") ?? params.get("keyevery") ?? params.get("k");
+        const prompt = params.get("prompt") ?? params.get("p");
+        const read = params.get("read") ?? params.get("readSeconds");
+        const strict = params.get("strict") ?? params.get("mode");
+
+        if (minutes != null) {
+          els.minutesInput.value = String(clamp(parseInt(minutes, 10), 1, 180));
+        }
+
+        if (keyEvery != null) {
+          els.keyEveryInput.value = String(clamp(parseInt(keyEvery, 10), 2, 60));
+        }
+
+        if (prompt != null) {
+          els.promptInput.value = prompt;
+        }
+
+        if (read != null) {
+          els.readInput.value = String(clamp(parseInt(read, 10), 0, 120));
+        }
+
+        if (strict != null) {
+          const normalized = String(strict).trim().toLowerCase();
+          els.strictInput.value = normalized === "gentle" ? "gentle" : "strict";
+        }
+
+        syncDurationPreview();
+
+        return boolParam(params.get("autostart")) || boolParam(params.get("start"));
+      }
+
+      async function copyDraft() {
+        const text = els.writer.value;
+
+        try {
+          await navigator.clipboard.writeText(text);
+          showToast("Draft copied.");
+        } catch {
+          const range = document.createRange();
+          range.selectNodeContents(els.exportBox);
+
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+
+          showToast("Draft selected. Use your browser’s copy command.");
+        }
+      }
+
+      els.settingsButton.addEventListener("click", () => {
+        openDialog(els.settingsDialog);
+      });
+
+      els.closeSettingsButton.addEventListener("click", () => {
+        closeDialog(els.settingsDialog);
+      });
+
+      els.startButton.addEventListener("click", startWithPromptReading);
+      els.pauseButton.addEventListener("click", pauseOrResume);
+      els.finishButton.addEventListener("click", finishSession);
+      els.resetButton.addEventListener("click", () => resetDraft({ ask: true }));
+
+      els.startNowButton.addEventListener("click", () => {
+        clearInterval(state.readTimerId);
+        beginSession();
+      });
+
+      els.cancelReadButton.addEventListener("click", () => {
+        clearInterval(state.readTimerId);
+        els.promptOverlay.classList.remove("show");
+        els.statusText.textContent = "Autostart canceled.";
+      });
+
+      els.closeDoneButton.addEventListener("click", () => {
+        closeDialog(els.doneDialog);
+      });
+
+      els.copyButton.addEventListener("click", copyDraft);
+
+      els.newSessionButton.addEventListener("click", () => {
+        closeDialog(els.doneDialog);
+        resetDraft({ ask: false });
+        openDialog(els.settingsDialog);
+      });
+
+      els.minutesInput.addEventListener("input", syncDurationPreview);
+      els.keyEveryInput.addEventListener("input", () => {
+        if (!state.active) {
+          els.nextKey.textContent = "--";
+          els.fill.style.width = "0%";
+        }
+      });
+
+      els.writer.addEventListener("keydown", handleKeydown);
+      els.writer.addEventListener("beforeinput", handleBeforeInput);
+      els.writer.addEventListener("input", handleInput);
+
+      els.writer.addEventListener("click", () => {
+        if (state.active) moveCaretToEnd();
+      });
+
+      els.writer.addEventListener("select", () => {
+        if (state.active) {
+          requestAnimationFrame(moveCaretToEnd);
+        }
+      });
+
+      els.writer.addEventListener("drop", event => {
+        if (state.active) {
+          blockEdit(event, "Dropping text is blocked during the sprint.");
+        }
+      });
+
+      els.writer.addEventListener("paste", event => {
+        if (!state.active || state.paused) return;
+
+        const settings = readSettings();
+
+        if (settings.strict === "strict") {
+          blockEdit(event, "Strict mode blocks paste. Type it out.");
+        }
+      });
+
+      window.addEventListener("keydown", event => {
+        if (event.key === "Escape" && els.promptOverlay.classList.contains("show")) {
+          clearInterval(state.readTimerId);
+          els.promptOverlay.classList.remove("show");
+          els.statusText.textContent = "Autostart canceled.";
+        }
+      });
+
+      resetDraft({ ask: false });
+
+      const shouldAutostart = applyUrlParams();
+
+      if (shouldAutostart) {
+        setTimeout(startWithPromptReading, 250);
       } else {
-        const pausedFor = Date.now() - pauseStartedAt;
-        endAt += pausedFor;
-        lastKeyAt = Date.now();
-        pauseAlreadyMarked = false;
-        paused = false;
-        lockWriter(false);
-        els.writer.focus();
-        els.writer.selectionStart = els.writer.selectionEnd = els.writer.value.length;
-        els.status.textContent = "Back in motion. Keep writing.";
+        openDialog(els.settingsDialog);
       }
-
-      updateButtons();
-    }
-
-    function finishSession() {
-      if (!active) return;
-
-      active = false;
-      paused = false;
-      clearInterval(timer);
-      lockWriter(true);
-
-      els.timeLeft.textContent = "0:00";
-      els.nextKey.textContent = "done";
-      els.fill.style.width = "100%";
-      els.fill.classList.remove("urgent");
-      els.status.textContent = "Done. Now revision can begin.";
-
-      updateButtons();
-      updateStats();
-
-      const words = countWords(els.writer.value);
-      const minutes = Math.round(durationMs / 60000);
-
-      els.summary.textContent =
-        "You wrote " +
-        words +
-        " words in about " +
-        minutes +
-        " minute" +
-        (minutes === 1 ? "" : "s") +
-        ", with " +
-        pauseCount +
-        " marked pause" +
-        (pauseCount === 1 ? "" : "s") +
-        ".";
-
-      els.exportBox.textContent = els.writer.value;
-
-      if (typeof els.doneDialog.showModal === "function") {
-        els.doneDialog.showModal();
-      }
-    }
-
-    function resetSession() {
-      if (active && !confirm("Reset this freewrite? Your current text will be cleared.")) {
-        return;
-      }
-
-      active = false;
-      paused = false;
-      clearInterval(timer);
-
-      els.writer.value = "";
-      lastValidText = "";
-      keyStreak = 0;
-      pauseCount = 0;
-      pauseAlreadyMarked = false;
-
-      lockWriter(true);
-
-      const minutes = parseInt(els.minutes.value, 10) || 10;
-      els.timeLeft.textContent = formatTime(minutes * 60 * 1000);
-      els.nextKey.textContent = "--";
-      els.fill.style.width = "0%";
-      els.fill.classList.remove("urgent");
-      els.status.textContent = "Choose a prompt and press Start.";
-
-      updateButtons();
-      updateStats();
-    }
-
-    function block(event, message) {
-      event.preventDefault();
-      showToast(message);
-    }
-
-    els.writer.addEventListener("keydown", event => {
-      if (!active || paused) return;
-
-      const key = event.key;
-      const lower = key.toLowerCase();
-      const ctrl = event.ctrlKey || event.metaKey;
-
-      const forbidden =
-        key === "Backspace" ||
-        key === "Delete" ||
-        (ctrl && lower === "z") ||
-        (ctrl && lower === "y") ||
-        (ctrl && lower === "x");
-
-      const navigation =
-        key === "ArrowLeft" ||
-        key === "ArrowRight" ||
-        key === "ArrowUp" ||
-        key === "ArrowDown" ||
-        key === "Home" ||
-        key === "End" ||
-        key === "PageUp" ||
-        key === "PageDown";
-
-      if (forbidden) {
-        block(event, "No deleting during freewriting. Keep moving forward.");
-        return;
-      }
-
-      if (navigation) {
-        block(event, "Stay at the end. Freewriting moves forward.");
-      }
-    });
-
-    els.writer.addEventListener("beforeinput", event => {
-      if (!active || paused) return;
-
-      const blockedTypes = [
-        "deleteContentBackward",
-        "deleteContentForward",
-        "deleteByCut",
-        "deleteByDrag",
-        "historyUndo",
-        "historyRedo"
-      ];
-
-      if (blockedTypes.includes(event.inputType)) {
-        block(event, "No deleting during freewriting. Keep moving forward.");
-      }
-    });
-
-    els.writer.addEventListener("input", () => {
-      if (!active || paused) return;
-
-      /*
-        Safety check:
-        If the browser somehow allows a deletion or earlier edit,
-        restore the last valid forward-moving text.
-      */
-      if (
-        els.writer.value.length < lastValidText.length ||
-        !els.writer.value.startsWith(lastValidText)
-      ) {
-        els.writer.value = lastValidText;
-        els.writer.selectionStart = els.writer.selectionEnd = els.writer.value.length;
-        showToast("Edit blocked. This draft only moves forward.");
-        return;
-      }
-
-      lastValidText = els.writer.value;
-      lastKeyAt = Date.now();
-      pauseAlreadyMarked = false;
-      keyStreak += 1;
-
-      els.status.textContent = "Good. Keep going — polish comes later.";
-      updateStats();
-      tick();
-    });
-
-    els.writer.addEventListener("click", () => {
-      if (active) {
-        els.writer.selectionStart = els.writer.selectionEnd = els.writer.value.length;
-      }
-    });
-
-    els.writer.addEventListener("drop", event => {
-      if (active) {
-        block(event, "Dropping text is blocked during the sprint.");
-      }
-    });
-
-    els.startBtn.addEventListener("click", startSession);
-    els.pauseBtn.addEventListener("click", pauseOrResume);
-    els.finishBtn.addEventListener("click", finishSession);
-    els.resetBtn.addEventListener("click", resetSession);
-
-    els.minutes.addEventListener("input", () => {
-      if (!active) {
-        const minutes = parseInt(els.minutes.value, 10) || 10;
-        els.timeLeft.textContent = formatTime(minutes * 60 * 1000);
-      }
-    });
-
-    els.copyBtn.addEventListener("click", async () => {
-      try {
-        await navigator.clipboard.writeText(els.writer.value);
-        showToast("Draft copied.");
-      } catch {
-        const range = document.createRange();
-        range.selectNodeContents(els.exportBox);
-        const selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(range);
-        showToast("Text selected. Use copy from your browser.");
-      }
-    });
-
-    els.closeDialogBtn.addEventListener("click", () => {
-      els.doneDialog.close();
-    });
-
-    resetSession();
+    })();
   </script>
 </body>
-</html>
