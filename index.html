@@ -12,116 +12,108 @@
       --muted: #6b7280;
       --line: #e5dccb;
       --accent: #2563eb;
-      --accent-2: #10b981;
+      --good: #10b981;
       --warn: #f59e0b;
-      --danger: #dc2626;
-      --shadow: 0 18px 45px rgba(31, 41, 55, 0.12);
-      --radius: 24px;
+      --bad: #dc2626;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
-      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background:
-        radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 34rem),
-        radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.13), transparent 30rem),
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 32rem),
+        radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.14), transparent 28rem),
         var(--bg);
       color: var(--ink);
-      min-height: 100vh;
       padding: 24px;
     }
 
-    .app {
-      width: min(1120px, 100%);
+    main {
+      width: min(1100px, 100%);
       margin: 0 auto;
       display: grid;
-      grid-template-columns: 330px 1fr;
-      gap: 22px;
-      align-items: start;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
     }
 
     header {
       grid-column: 1 / -1;
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      align-items: end;
-      padding: 8px 4px 0;
+      margin-bottom: 4px;
     }
 
     h1 {
       margin: 0;
-      font-size: clamp(2rem, 5vw, 4rem);
+      font-size: clamp(2.2rem, 6vw, 4.5rem);
+      line-height: 0.9;
       letter-spacing: -0.06em;
-      line-height: 0.92;
     }
 
-    .tagline {
-      margin: 10px 0 0;
+    .subtitle {
+      margin: 12px 0 0;
       color: var(--muted);
-      max-width: 780px;
       font-size: 1.05rem;
+      max-width: 760px;
     }
 
-    .pill {
+    .panel,
+    .writer-card {
+      background: rgba(255, 250, 240, 0.9);
       border: 1px solid rgba(31, 41, 55, 0.12);
-      background: rgba(255, 250, 240, 0.78);
-      backdrop-filter: blur(10px);
-      border-radius: 999px;
-      padding: 10px 14px;
-      color: var(--muted);
-      font-weight: 700;
-      white-space: nowrap;
-      box-shadow: 0 8px 24px rgba(31, 41, 55, 0.07);
-    }
-
-    .panel, .writer-wrap {
-      background: rgba(255, 250, 240, 0.86);
-      border: 1px solid rgba(31, 41, 55, 0.11);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
+      border-radius: 24px;
+      box-shadow: 0 20px 50px rgba(31, 41, 55, 0.12);
       overflow: hidden;
     }
 
-    .panel { padding: 18px; }
+    .panel {
+      padding: 18px;
+    }
 
-    .panel h2 {
+    h2 {
       margin: 0 0 12px;
-      font-size: 1.05rem;
+      font-size: 1.1rem;
     }
 
     label {
       display: block;
-      font-size: 0.82rem;
+      margin: 16px 0 6px;
       color: var(--muted);
+      font-size: 0.78rem;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.06em;
-      margin: 16px 0 7px;
     }
 
-    input, select, button, textarea {
+    input,
+    select,
+    textarea,
+    button {
       font: inherit;
     }
 
-    input, select {
+    input,
+    select {
       width: 100%;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: #fffdf7;
-      color: var(--ink);
       padding: 11px 12px;
-      outline: none;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fffdf8;
+      color: var(--ink);
     }
 
-    input:focus, select:focus, textarea:focus {
-      border-color: rgba(37, 99, 235, 0.55);
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: rgba(37, 99, 235, 0.6);
       box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
     }
 
-    .row {
+    .two {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
@@ -136,15 +128,16 @@
 
     button {
       border: 0;
-      border-radius: 16px;
+      border-radius: 15px;
       padding: 12px 14px;
       font-weight: 850;
       cursor: pointer;
-      transition: transform 120ms ease, filter 120ms ease, opacity 120ms ease;
     }
 
-    button:active { transform: translateY(1px) scale(0.99); }
-    button:disabled { opacity: 0.48; cursor: not-allowed; }
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
 
     .primary {
       color: white;
@@ -153,29 +146,22 @@
 
     .secondary {
       color: var(--ink);
-      background: #ede7dc;
+      background: #ebe4d8;
     }
 
     .danger {
       color: white;
-      background: linear-gradient(135deg, var(--danger), #991b1b);
+      background: linear-gradient(135deg, var(--bad), #991b1b);
     }
 
-    .quiet {
-      background: transparent;
-      color: var(--muted);
-      border: 1px solid var(--line);
-    }
-
-    .hintbox {
+    .note {
       margin-top: 18px;
+      padding: 14px;
       border-radius: 18px;
       background: rgba(37, 99, 235, 0.08);
-      border: 1px solid rgba(37, 99, 235, 0.14);
-      padding: 14px;
       color: #1e3a8a;
-      font-size: 0.95rem;
       line-height: 1.45;
+      font-size: 0.95rem;
     }
 
     .stats {
@@ -190,27 +176,38 @@
       border-right: 1px solid rgba(31, 41, 55, 0.08);
     }
 
-    .stat:last-child { border-right: 0; }
-    .stat .num { font-size: 1.45rem; font-weight: 900; letter-spacing: -0.04em; }
-    .stat .label { font-size: 0.78rem; color: var(--muted); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat:last-child {
+      border-right: 0;
+    }
+
+    .num {
+      font-size: 1.45rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
 
     .progress-area {
       padding: 16px 18px 10px;
-      background: rgba(255, 255, 255, 0.36);
     }
 
     .progress-label {
       display: flex;
-      align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 8px;
       color: var(--muted);
       font-weight: 800;
-      font-size: 0.92rem;
+      margin-bottom: 8px;
     }
 
-    .countdown {
+    #nextKey {
       color: var(--accent);
       font-variant-numeric: tabular-nums;
     }
@@ -218,67 +215,66 @@
     .bar {
       height: 16px;
       border-radius: 999px;
-      background: #e8dfd0;
+      background: #e6ddcf;
       overflow: hidden;
-      border: 1px solid rgba(31, 41, 55, 0.08);
+      border: 1px solid rgba(31, 41, 55, 0.1);
     }
 
-    .fill {
+    #fill {
       width: 0%;
       height: 100%;
-      background: linear-gradient(90deg, var(--accent-2), var(--accent));
       border-radius: inherit;
-      transition: width 90ms linear, background 180ms ease;
+      background: linear-gradient(90deg, var(--good), var(--accent));
+      transition: width 80ms linear, background 160ms ease;
     }
 
-    .fill.urgent { background: linear-gradient(90deg, var(--warn), var(--danger)); }
+    #fill.urgent {
+      background: linear-gradient(90deg, var(--warn), var(--bad));
+    }
 
-    .status {
+    #status {
       padding: 0 18px 14px;
       color: var(--muted);
       min-height: 1.5rem;
-      font-size: 0.95rem;
     }
 
-    .writer {
+    textarea {
       width: 100%;
       min-height: 520px;
       resize: vertical;
       border: 0;
-      outline: 0;
       padding: 26px;
+      color: #111827;
       background:
-        linear-gradient(to bottom, transparent 31px, rgba(229, 220, 203, 0.72) 32px),
+        linear-gradient(to bottom, transparent 31px, rgba(229, 220, 203, 0.75) 32px),
         var(--paper);
       background-size: 100% 32px;
       line-height: 32px;
-      font-size: 1.18rem;
-      color: #111827;
+      font-size: 1.15rem;
       caret-color: var(--accent);
     }
 
-    .writer.locked {
-      background:
-        linear-gradient(to bottom, transparent 31px, rgba(229, 220, 203, 0.72) 32px),
-        #f4eee2;
+    textarea:disabled {
       color: #4b5563;
+      background:
+        linear-gradient(to bottom, transparent 31px, rgba(229, 220, 203, 0.75) 32px),
+        #f2ecdf;
     }
 
     .toast {
       position: fixed;
       left: 50%;
       bottom: 24px;
-      transform: translateX(-50%) translateY(120px);
+      transform: translateX(-50%) translateY(100px);
       opacity: 0;
       background: #111827;
       color: white;
       padding: 12px 16px;
       border-radius: 999px;
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
-      transition: transform 180ms ease, opacity 180ms ease;
       font-weight: 800;
-      z-index: 10;
-      max-width: min(90vw, 660px);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+      transition: 180ms ease;
+      max-width: min(90vw, 650px);
       text-align: center;
     }
 
@@ -290,373 +286,552 @@
     dialog {
       border: 0;
       border-radius: 24px;
-      padding: 0;
-      max-width: 620px;
-      width: calc(100% - 32px);
+      width: min(640px, calc(100% - 32px));
       background: var(--paper);
       color: var(--ink);
-      box-shadow: 0 28px 80px rgba(31, 41, 55, 0.3);
+      box-shadow: 0 30px 80px rgba(31, 41, 55, 0.35);
+      padding: 0;
     }
 
-    dialog::backdrop { background: rgba(17, 24, 39, 0.42); }
+    dialog::backdrop {
+      background: rgba(17, 24, 39, 0.45);
+    }
 
     .modal {
       padding: 22px;
     }
 
-    .modal h2 {
-      margin: 0 0 8px;
-      font-size: 1.55rem;
+    .modal p {
+      color: var(--muted);
+      line-height: 1.5;
     }
 
-    .modal p { color: var(--muted); line-height: 1.5; }
-
-    .exportbox {
+    #exportBox {
       margin-top: 12px;
       width: 100%;
       min-height: 180px;
       border: 1px solid var(--line);
       border-radius: 16px;
       padding: 12px;
-      background: #fffdf7;
+      background: #fffdf8;
       white-space: pre-wrap;
       overflow: auto;
       line-height: 1.45;
     }
 
-    .small { font-size: 0.86rem; color: var(--muted); line-height: 1.4; }
+    @media (max-width: 850px) {
+      body {
+        padding: 14px;
+      }
 
-    @media (max-width: 860px) {
-      body { padding: 14px; }
-      .app { grid-template-columns: 1fr; }
-      header { align-items: start; flex-direction: column; }
-      .stats { grid-template-columns: repeat(2, 1fr); }
-      .stat:nth-child(2) { border-right: 0; }
-      .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 1px solid rgba(31, 41, 55, 0.08); }
-      .writer { min-height: 420px; font-size: 1.05rem; }
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      textarea {
+        min-height: 420px;
+      }
     }
   </style>
 </head>
 <body>
-  <main class="app">
+  <main>
     <header>
-      <div>
-        <h1>Keep Writing</h1>
-        <p class="tagline">A no-delete freewriting timer for getting words on the page. Keep the keys moving; edit later.</p>
-      </div>
-      <div class="pill" id="modePill">Ready for a draft sprint</div>
+      <h1>Keep Writing</h1>
+      <p class="subtitle">
+        A no-delete freewriting timer for college writers. The goal is momentum, not perfection.
+        Keep typing; revise later.
+      </p>
     </header>
 
-    <aside class="panel" aria-label="Freewriting settings">
+    <aside class="panel">
       <h2>Session setup</h2>
 
-      <label for="prompt">Writing prompt</label>
+      <label for="prompt">Prompt</label>
       <select id="prompt">
-        <option value="Start with: I used to think writing was… but now…">I used to think writing was… but now…</option>
-        <option value="Describe a moment when you changed your mind about something.">A time I changed my mind</option>
-        <option value="Write about a place on campus where you notice details others might miss.">A place with overlooked details</option>
-        <option value="Explain something you know how to do, but do it from memory and without stopping.">Explain something you can do</option>
-        <option value="What makes a piece of writing feel honest?">What makes writing honest?</option>
-        <option value="">Blank page</option>
+        <option value="I used to think writing was… but now I’m beginning to think…">
+          I used to think writing was…
+        </option>
+        <option value="Describe a time you changed your mind about something.">
+          A time I changed my mind
+        </option>
+        <option value="Write about a place on campus where you notice details others might miss.">
+          A place with overlooked details
+        </option>
+        <option value="What makes a piece of writing feel honest?">
+          What makes writing honest?
+        </option>
+        <option value="Explain something you know how to do, without stopping to edit.">
+          Explain something you know
+        </option>
+        <option value="">
+          Blank page
+        </option>
       </select>
 
-      <div class="row">
+      <div class="two">
         <div>
           <label for="minutes">Minutes</label>
           <input id="minutes" type="number" min="1" max="60" value="10" />
         </div>
         <div>
-          <label for="keyDelay">Key every</label>
-          <input id="keyDelay" type="number" min="2" max="30" value="8" aria-describedby="delayHelp" />
+          <label for="keyDelay">Key every seconds</label>
+          <input id="keyDelay" type="number" min="2" max="30" value="8" />
         </div>
       </div>
-      <div id="delayHelp" class="small" style="margin-top:8px;">If you pause longer than this many seconds, the app will nudge you and mark a pause.</div>
-
-      <label for="strictness">No-delete rule</label>
-      <select id="strictness">
-        <option value="strict" selected>Strict: block Backspace/Delete/Cut/Paste</option>
-        <option value="gentle">Gentle: block delete, allow paste</option>
-      </select>
 
       <div class="buttons">
-        <button class="primary" id="startBtn">Start</button>
-        <button class="secondary" id="pauseBtn" disabled>Pause</button>
-        <button class="quiet" id="finishBtn" disabled>Finish</button>
-        <button class="danger" id="resetBtn">Reset</button>
+        <button id="startBtn" class="primary">Start</button>
+        <button id="pauseBtn" class="secondary" disabled>Pause</button>
+        <button id="finishBtn" class="secondary" disabled>Finish</button>
+        <button id="resetBtn" class="danger">Reset</button>
       </div>
 
-      <div class="hintbox">
-        <strong>For students:</strong> this is not about perfect sentences. If you get stuck, type “I’m stuck because…” and keep moving. You can revise after the timer ends.
+      <div class="note">
+        <strong>Student reminder:</strong> if you get stuck, type
+        “I’m stuck because…” and keep going. This is raw material, not a final draft.
       </div>
     </aside>
 
-    <section class="writer-wrap" aria-label="Writing area">
-      <div class="stats" aria-live="polite">
-        <div class="stat"><div class="num" id="timeLeft">10:00</div><div class="label">Time left</div></div>
-        <div class="stat"><div class="num" id="words">0</div><div class="label">Words</div></div>
-        <div class="stat"><div class="num" id="streak">0</div><div class="label">Key streak</div></div>
-        <div class="stat"><div class="num" id="pauses">0</div><div class="label">Pauses</div></div>
+    <section class="writer-card">
+      <div class="stats">
+        <div class="stat">
+          <div id="timeLeft" class="num">10:00</div>
+          <div class="label">Time left</div>
+        </div>
+        <div class="stat">
+          <div id="words" class="num">0</div>
+          <div class="label">Words</div>
+        </div>
+        <div class="stat">
+          <div id="streak" class="num">0</div>
+          <div class="label">Key streak</div>
+        </div>
+        <div class="stat">
+          <div id="pauses" class="num">0</div>
+          <div class="label">Pauses</div>
+        </div>
       </div>
 
       <div class="progress-area">
         <div class="progress-label">
-          <span>Time before your next keypress is needed</span>
-          <span class="countdown" id="nextKey">--</span>
+          <span>Time before next required keypress</span>
+          <span id="nextKey">--</span>
         </div>
-        <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Time before next keypress">
-          <div class="fill" id="fill"></div>
+        <div class="bar" role="progressbar" aria-label="Time before next keypress">
+          <div id="fill"></div>
         </div>
       </div>
-      <div class="status" id="status">Choose a prompt and press Start.</div>
 
-      <textarea id="writer" class="writer locked" spellcheck="true" placeholder="Your freewrite will begin here…" disabled></textarea>
+      <div id="status">Choose a prompt and press Start.</div>
+
+      <textarea
+        id="writer"
+        disabled
+        spellcheck="true"
+        placeholder="Your freewrite will begin here…"
+      ></textarea>
     </section>
   </main>
 
-  <div class="toast" id="toast" role="status" aria-live="assertive"></div>
+  <div id="toast" class="toast" role="status" aria-live="assertive"></div>
 
   <dialog id="doneDialog">
     <div class="modal">
       <h2>Session complete</h2>
       <p id="summary"></p>
-      <p class="small">Copy your draft below into your course notes or learning management system. Deleting was blocked during the sprint so you can treat this as raw material, not a final paper.</p>
-      <div class="exportbox" id="exportBox" tabindex="0"></div>
+      <p>
+        Copy this raw draft into your notes or course system. Now you can revise,
+        reorganize, and clean it up.
+      </p>
+      <div id="exportBox" tabindex="0"></div>
       <div class="buttons">
-        <button class="primary" id="copyBtn">Copy draft</button>
-        <button class="secondary" id="closeDialogBtn">Close</button>
+        <button id="copyBtn" class="primary">Copy draft</button>
+        <button id="closeDialogBtn" class="secondary">Close</button>
       </div>
     </div>
   </dialog>
 
   <script>
-    (function () {
-      "use strict";
+    const $ = id => document.getElementById(id);
 
-      const $ = (id) => document.getElementById(id);
-      const els = {
-        prompt: $("prompt"), minutes: $("minutes"), keyDelay: $("keyDelay"), strictness: $("strictness"),
-        startBtn: $("startBtn"), pauseBtn: $("pauseBtn"), finishBtn: $("finishBtn"), resetBtn: $("resetBtn"),
-        writer: $("writer"), timeLeft: $("timeLeft"), words: $("words"), streak: $("streak"), pauses: $("pauses"),
-        nextKey: $("nextKey"), fill: $("fill"), status: $("status"), toast: $("toast"), modePill: $("modePill"),
-        doneDialog: $("doneDialog"), summary: $("summary"), exportBox: $("exportBox"), copyBtn: $("copyBtn"), closeDialogBtn: $("closeDialogBtn")
-      };
+    const els = {
+      prompt: $("prompt"),
+      minutes: $("minutes"),
+      keyDelay: $("keyDelay"),
+      startBtn: $("startBtn"),
+      pauseBtn: $("pauseBtn"),
+      finishBtn: $("finishBtn"),
+      resetBtn: $("resetBtn"),
+      writer: $("writer"),
+      timeLeft: $("timeLeft"),
+      words: $("words"),
+      streak: $("streak"),
+      pauses: $("pauses"),
+      nextKey: $("nextKey"),
+      fill: $("fill"),
+      status: $("status"),
+      toast: $("toast"),
+      doneDialog: $("doneDialog"),
+      summary: $("summary"),
+      exportBox: $("exportBox"),
+      copyBtn: $("copyBtn"),
+      closeDialogBtn: $("closeDialogBtn")
+    };
 
-      let session = {
-        active: false,
-        paused: false,
-        durationMs: 10 * 60 * 1000,
-        keyDelayMs: 8 * 1000,
-        startAt: 0,
-        endAt: 0,
-        pauseStartedAt: 0,
-        lastKeyAt: 0,
-        lastValue: "",
-        streak: 0,
-        pauses: 0,
-        overdueMarked: false,
-        timer: null
-      };
+    let active = false;
+    let paused = false;
+    let durationMs = 10 * 60 * 1000;
+    let keyDelayMs = 8 * 1000;
+    let endAt = 0;
+    let lastKeyAt = 0;
+    let pauseStartedAt = 0;
+    let timer = null;
 
-      function clamp(num, min, max) {
-        return Math.min(max, Math.max(min, num));
-      }
+    let lastValidText = "";
+    let keyStreak = 0;
+    let pauseCount = 0;
+    let pauseAlreadyMarked = false;
 
-      function formatMs(ms) {
-        const total = Math.max(0, Math.ceil(ms / 1000));
-        const m = Math.floor(total / 60);
-        const s = total % 60;
-        return m + ":" + String(s).padStart(2, "0");
-      }
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
 
-      function countWords(text) {
-        const cleaned = text.trim();
-        if (!cleaned) return 0;
-        const matches = cleaned.match(/[\\p{L}\\p{N}]+(?:['’-][\\p{L}\\p{N}]+)*/gu);
-        return matches ? matches.length : 0;
-      }
+    function formatTime(ms) {
+      const total = Math.max(0, Math.ceil(ms / 1000));
+      const minutes = Math.floor(total / 60);
+      const seconds = total % 60;
+      return minutes + ":" + String(seconds).padStart(2, "0");
+    }
 
-      function showToast(message) {
-        els.toast.textContent = message;
-        els.toast.classList.add("show");
-        window.clearTimeout(showToast._t);
-        showToast._t = window.setTimeout(() => els.toast.classList.remove("show"), 1800);
-      }
+    function countWords(text) {
+      const matches = text.trim().match(/[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu);
+      return matches ? matches.length : 0;
+    }
 
-      function updateStats() {
-        els.words.textContent = countWords(els.writer.value);
-        els.streak.textContent = session.streak;
-        els.pauses.textContent = session.pauses;
-      }
+    function showToast(message) {
+      els.toast.textContent = message;
+      els.toast.classList.add("show");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => {
+        els.toast.classList.remove("show");
+      }, 1700);
+    }
 
-      function setLocked(locked) {
-        els.writer.disabled = locked;
-        els.writer.classList.toggle("locked", locked);
-      }
+    function updateStats() {
+      els.words.textContent = countWords(els.writer.value);
+      els.streak.textContent = keyStreak;
+      els.pauses.textContent = pauseCount;
+    }
 
-      function configureButtons() {
-        els.startBtn.disabled = session.active && !session.paused;
-        els.pauseBtn.disabled = !session.active;
-        els.finishBtn.disabled = !session.active;
-        els.pauseBtn.textContent = session.paused ? "Resume" : "Pause";
-      }
+    function updateButtons() {
+      els.startBtn.disabled = active && !paused;
+      els.pauseBtn.disabled = !active;
+      els.finishBtn.disabled = !active;
+      els.pauseBtn.textContent = paused ? "Resume" : "Pause";
+    }
 
-      function insertPauseMarker() {
-        const marker = "\
-[Pause — keep going from here.]\
-";
-        const end = els.writer.value.length;
-        els.writer.value = els.writer.value + marker;
-        session.lastValue = els.writer.value;
+    function lockWriter(locked) {
+      els.writer.disabled = locked;
+    }
+
+    function tick() {
+      if (!active || paused) return;
+
+      const now = Date.now();
+      const remaining = endAt - now;
+      const untilKey = lastKeyAt + keyDelayMs - now;
+
+      els.timeLeft.textContent = formatTime(remaining);
+
+      const progress = clamp(
+        ((keyDelayMs - Math.max(0, untilKey)) / keyDelayMs) * 100,
+        0,
+        100
+      );
+
+      els.fill.style.width = progress + "%";
+      els.fill.classList.toggle("urgent", untilKey <= 2500);
+      els.nextKey.textContent = untilKey > 0
+        ? Math.ceil(untilKey / 1000) + "s"
+        : "type now";
+
+      if (untilKey <= 0 && !pauseAlreadyMarked) {
+        pauseAlreadyMarked = true;
+        pauseCount += 1;
+
+        els.writer.value += "\n[Pause — restart with the next word.]\n";
+        lastValidText = els.writer.value;
         els.writer.selectionStart = els.writer.selectionEnd = els.writer.value.length;
+
+        els.status.textContent = "You paused. No penalty — type the next honest sentence.";
+        showToast("Pause marked. Keep going.");
         updateStats();
       }
 
-      function tick() {
-        if (!session.active || session.paused) return;
+      if (remaining <= 0) {
+        finishSession();
+      }
+    }
 
-        const now = Date.now();
-        const remaining = session.endAt - now;
-        els.timeLeft.textContent = formatMs(remaining);
+    function startSession() {
+      const minutes = clamp(parseInt(els.minutes.value, 10) || 10, 1, 60);
+      const seconds = clamp(parseInt(els.keyDelay.value, 10) || 8, 2, 30);
 
-        const untilKey = session.lastKeyAt + session.keyDelayMs - now;
-        const pct = clamp((session.keyDelayMs - Math.max(0, untilKey)) / session.keyDelayMs * 100, 0, 100);
-        els.fill.style.width = pct + "%";
-        els.fill.classList.toggle("urgent", untilKey <= 2500);
-        els.nextKey.textContent = untilKey > 0 ? (Math.ceil(untilKey / 1000) + "s") : "type now";
-        els.fill.parentElement.setAttribute("aria-valuenow", Math.round(pct));
+      durationMs = minutes * 60 * 1000;
+      keyDelayMs = seconds * 1000;
 
-        if (untilKey <= 0 && !session.overdueMarked) {
-          session.overdueMarked = true;
-          session.pauses += 1;
-          insertPauseMarker();
-          showToast("Pause marked. No penalty — restart with the next word.");
-          els.status.textContent = "You paused. Type anything useful, even: “I’m stuck because…”";
-          updateStats();
-        }
+      active = true;
+      paused = false;
+      endAt = Date.now() + durationMs;
+      lastKeyAt = Date.now();
 
-        if (remaining <= 0) {
-          finishSession();
-        }
+      keyStreak = 0;
+      pauseCount = 0;
+      pauseAlreadyMarked = false;
+
+      if (!els.writer.value.trim()) {
+        const prompt = els.prompt.value;
+        els.writer.value = prompt ? prompt + "\n\n" : "";
       }
 
-      function startSession() {
-        const minutes = clamp(parseInt(els.minutes.value, 10) || 10, 1, 60);
-        const seconds = clamp(parseInt(els.keyDelay.value, 10) || 8, 2, 30);
-        session.durationMs = minutes * 60 * 1000;
-        session.keyDelayMs = seconds * 1000;
-        session.active = true;
-        session.paused = false;
-        session.startAt = Date.now();
-        session.endAt = session.startAt + session.durationMs;
-        session.lastKeyAt = Date.now();
-        session.streak = 0;
-        session.pauses = 0;
-        session.overdueMarked = false;
+      lastValidText = els.writer.value;
 
-        const prompt = els.prompt.value;
-        if (!els.writer.value.trim()) {
-          els.writer.value = prompt ? prompt + "\
-\
-" : "";
-        }
-        session.lastValue = els.writer.value;
+      lockWriter(false);
+      els.writer.focus();
+      els.writer.selectionStart = els.writer.selectionEnd = els.writer.value.length;
 
-        setLocked(false);
+      els.status.textContent = "Freewriting in progress. Do not stop to fix anything.";
+      updateButtons();
+      updateStats();
+
+      clearInterval(timer);
+      timer = setInterval(tick, 100);
+      tick();
+    }
+
+    function pauseOrResume() {
+      if (!active) return;
+
+      if (!paused) {
+        paused = true;
+        pauseStartedAt = Date.now();
+        lockWriter(true);
+        els.status.textContent = "Paused. Resume when ready.";
+      } else {
+        const pausedFor = Date.now() - pauseStartedAt;
+        endAt += pausedFor;
+        lastKeyAt = Date.now();
+        pauseAlreadyMarked = false;
+        paused = false;
+        lockWriter(false);
         els.writer.focus();
         els.writer.selectionStart = els.writer.selectionEnd = els.writer.value.length;
-        els.status.textContent = "Freewrite in progress. Do not stop to fix anything.";
-        els.modePill.textContent = "Draft sprint running";
-        configureButtons();
-        updateStats();
-        window.clearInterval(session.timer);
-        session.timer = window.setInterval(tick, 100);
-        tick();
+        els.status.textContent = "Back in motion. Keep writing.";
       }
 
-      function pauseOrResume() {
-        if (!session.active) return;
-        if (!session.paused) {
-          session.paused = true;
-          session.pauseStartedAt = Date.now();
-          setLocked(true);
-          els.status.textContent = "Paused. Resume when you are ready.";
-          els.modePill.textContent = "Paused";
-        } else {
-          const pausedFor = Date.now() - session.pauseStartedAt;
-          session.endAt += pausedFor;
-          session.lastKeyAt = Date.now();
-          session.overdueMarked = false;
-          session.paused = false;
-          setLocked(false);
-          els.writer.focus();
-          els.writer.selectionStart = els.writer.selectionEnd = els.writer.value.length;
-          els.status.textContent = "Back in motion. Keep writing.";
-          els.modePill.textContent = "Draft sprint running";
-        }
-        configureButtons();
-        tick();
+      updateButtons();
+    }
+
+    function finishSession() {
+      if (!active) return;
+
+      active = false;
+      paused = false;
+      clearInterval(timer);
+      lockWriter(true);
+
+      els.timeLeft.textContent = "0:00";
+      els.nextKey.textContent = "done";
+      els.fill.style.width = "100%";
+      els.fill.classList.remove("urgent");
+      els.status.textContent = "Done. Now revision can begin.";
+
+      updateButtons();
+      updateStats();
+
+      const words = countWords(els.writer.value);
+      const minutes = Math.round(durationMs / 60000);
+
+      els.summary.textContent =
+        "You wrote " +
+        words +
+        " words in about " +
+        minutes +
+        " minute" +
+        (minutes === 1 ? "" : "s") +
+        ", with " +
+        pauseCount +
+        " marked pause" +
+        (pauseCount === 1 ? "" : "s") +
+        ".";
+
+      els.exportBox.textContent = els.writer.value;
+
+      if (typeof els.doneDialog.showModal === "function") {
+        els.doneDialog.showModal();
+      }
+    }
+
+    function resetSession() {
+      if (active && !confirm("Reset this freewrite? Your current text will be cleared.")) {
+        return;
       }
 
-      function finishSession() {
-        if (!session.active) return;
-        session.active = false;
-        session.paused = false;
-        window.clearInterval(session.timer);
-        setLocked(true);
-        configureButtons();
-        els.timeLeft.textContent = "0:00";
-        els.nextKey.textContent = "done";
-        els.fill.style.width = "100%";
-        els.fill.classList.remove("urgent");
-        els.status.textContent = "Done. Now you can copy the raw draft and revise elsewhere.";
-        els.modePill.textContent = "Session complete";
-        updateStats();
+      active = false;
+      paused = false;
+      clearInterval(timer);
 
-        const mins = Math.round(session.durationMs / 60000);
-        const words = countWords(els.writer.value);
-        els.summary.textContent = "You wrote " + words + " words in about " + mins + " minute" + (mins === 1 ? "" : "s") + ", with " + session.pauses + " marked pause" + (session.pauses === 1 ? "" : "s") + ".";
-        els.exportBox.textContent = els.writer.value;
-        if (typeof els.doneDialog.showModal === "function") els.doneDialog.showModal();
+      els.writer.value = "";
+      lastValidText = "";
+      keyStreak = 0;
+      pauseCount = 0;
+      pauseAlreadyMarked = false;
+
+      lockWriter(true);
+
+      const minutes = parseInt(els.minutes.value, 10) || 10;
+      els.timeLeft.textContent = formatTime(minutes * 60 * 1000);
+      els.nextKey.textContent = "--";
+      els.fill.style.width = "0%";
+      els.fill.classList.remove("urgent");
+      els.status.textContent = "Choose a prompt and press Start.";
+
+      updateButtons();
+      updateStats();
+    }
+
+    function block(event, message) {
+      event.preventDefault();
+      showToast(message);
+    }
+
+    els.writer.addEventListener("keydown", event => {
+      if (!active || paused) return;
+
+      const key = event.key;
+      const lower = key.toLowerCase();
+      const ctrl = event.ctrlKey || event.metaKey;
+
+      const forbidden =
+        key === "Backspace" ||
+        key === "Delete" ||
+        (ctrl && lower === "z") ||
+        (ctrl && lower === "y") ||
+        (ctrl && lower === "x");
+
+      const navigation =
+        key === "ArrowLeft" ||
+        key === "ArrowRight" ||
+        key === "ArrowUp" ||
+        key === "ArrowDown" ||
+        key === "Home" ||
+        key === "End" ||
+        key === "PageUp" ||
+        key === "PageDown";
+
+      if (forbidden) {
+        block(event, "No deleting during freewriting. Keep moving forward.");
+        return;
       }
 
-      function resetAll() {
-        if (session.active && !window.confirm("Reset this freewrite? Your current text will be cleared.")) return;
-        session.active = false;
-        session.paused = false;
-        window.clearInterval(session.timer);
-        els.writer.value = "";
-        session.lastValue = "";
-        session.streak = 0;
-        session.pauses = 0;
-        session.overdueMarked = false;
-        setLocked(true);
-        els.timeLeft.textContent = formatMs((parseInt(els.minutes.value, 10) || 10) * 60 * 1000);
-        els.nextKey.textContent = "--";
-        els.fill.style.width = "0%";
-        els.fill.classList.remove("urgent");
-        els.status.textContent = "Choose a prompt and press Start.";
-        els.modePill.textContent = "Ready for a draft sprint";
-        updateStats();
-        configureButtons();
+      if (navigation) {
+        block(event, "Stay at the end. Freewriting moves forward.");
+      }
+    });
+
+    els.writer.addEventListener("beforeinput", event => {
+      if (!active || paused) return;
+
+      const blockedTypes = [
+        "deleteContentBackward",
+        "deleteContentForward",
+        "deleteByCut",
+        "deleteByDrag",
+        "historyUndo",
+        "historyRedo"
+      ];
+
+      if (blockedTypes.includes(event.inputType)) {
+        block(event, "No deleting during freewriting. Keep moving forward.");
+      }
+    });
+
+    els.writer.addEventListener("input", () => {
+      if (!active || paused) return;
+
+      /*
+        Safety check:
+        If the browser somehow allows a deletion or earlier edit,
+        restore the last valid forward-moving text.
+      */
+      if (
+        els.writer.value.length < lastValidText.length ||
+        !els.writer.value.startsWith(lastValidText)
+      ) {
+        els.writer.value = lastValidText;
+        els.writer.selectionStart = els.writer.selectionEnd = els.writer.value.length;
+        showToast("Edit blocked. This draft only moves forward.");
+        return;
       }
 
-      function blockEdit(event, message) {
-        event.preventDefault();
-        showToast(message);
+      lastValidText = els.writer.value;
+      lastKeyAt = Date.now();
+      pauseAlreadyMarked = false;
+      keyStreak += 1;
+
+      els.status.textContent = "Good. Keep going — polish comes later.";
+      updateStats();
+      tick();
+    });
+
+    els.writer.addEventListener("click", () => {
+      if (active) {
+        els.writer.selectionStart = els.writer.selectionEnd = els.writer.value.length;
       }
+    });
 
-      els.writer.addEventListener("keydown", function (event) {
-        if (!session.active || session.paused) return;
+    els.writer.addEventListener("drop", event => {
+      if (active) {
+        block(event, "Dropping text is blocked during the sprint.");
+      }
+    });
 
-        const forbiddenKeys = ["Backspace", "Delete"];
-        const navigationKeys = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown"];
-        const isUndoRedo = (event.ctrlKey || event.metaKey) && ["z", "y"].includes(event.key.toLowerCase());
-        const isSelectAll = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "a";
-        const isCut = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "x";
-        const isPaste = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "v";
+    els.startBtn.addEventListener("click", startSession);
+    els.pauseBtn.addEventListener("click", pauseOrResume);
+    els.finishBtn.addEventListener("click", finishSession);
+    els.resetBtn.addEventListener("click", resetSession);
 
-        if (forbiddenKeys.includes(event.key) || isUndoRedo || isCut) {
-          blockEdit(event, "No deleting during freewriting. Keep going forward.");
-          return;
-        }
-        if (els.strictness.value === "strict" && (isPaste || isSelectAll)) {
+    els.minutes.addEventListener("input", () => {
+      if (!active) {
+        const minutes = parseInt(els.minutes.value, 10) || 10;
+        els.timeLeft.textContent = formatTime(minutes * 60 * 1000);
+      }
+    });
+
+    els.copyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(els.writer.value);
+        showToast("Draft copied.");
+      } catch {
+        const range = document.createRange();
+        range.selectNodeContents(els.exportBox);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        showToast("Text selected. Use copy from your browser.");
+      }
+    });
+
+    els.closeDialogBtn.addEventListener("click", () => {
+      els.doneDialog.close();
+    });
+
+    resetSession();
+  </script>
+</body>
+</html>
