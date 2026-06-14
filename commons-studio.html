@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IEG Cooperative Studio Demo</title>
+<style>
+  :root{
+    --bg:#f7f4ec; --panel:#fffaf1; --ink:#25221d; --muted:#706a60; --line:#ded4c2;
+    --accent:#426b5b; --accent2:#b86f3a; --accent3:#5c6f99; --good:#3f7a56; --warn:#a05d28;
+    --shadow:0 18px 50px rgba(37,34,29,.10); --radius:24px;
+  }
+  *{box-sizing:border-box} body{margin:0;font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;background:radial-gradient(circle at top left,#fff9e7,transparent 35%),linear-gradient(135deg,#f7f4ec,#eef2ea);color:var(--ink);min-height:100vh}
+  button,input,textarea,select{font:inherit} button{cursor:pointer;border:0}
+  .app{max-width:1180px;margin:0 auto;padding:28px}.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;align-items:stretch;margin-bottom:18px}.card{background:rgba(255,250,241,.86);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);backdrop-filter: blur(10px)}
+  .intro{padding:28px}.eyebrow{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:99px;padding:7px 11px;color:var(--accent);font-weight:700;font-size:13px;background:#fffdf7}.dot{width:8px;height:8px;border-radius:999px;background:var(--accent)}
+  h1{font-size:clamp(34px,5vw,62px);line-height:.95;margin:18px 0 12px;letter-spacing:-.055em}.sub{color:var(--muted);font-size:18px;line-height:1.55;max-width:760px}.toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}.btn{border-radius:14px;padding:12px 15px;background:var(--ink);color:white;font-weight:800;box-shadow:0 8px 20px rgba(37,34,29,.16)}.btn.secondary{background:#efe6d6;color:var(--ink);box-shadow:none;border:1px solid var(--line)}.btn.ghost{background:transparent;color:var(--accent);box-shadow:none;border:1px solid var(--line)}.btn.small{padding:8px 10px;font-size:13px;border-radius:11px}.btn:disabled{opacity:.55;cursor:not-allowed}
+  .status{padding:20px;display:grid;gap:12px}.meter{height:16px;border-radius:999px;background:#e7decc;overflow:hidden;border:1px solid #d8cbb7}.fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),#88a57a);transition:.45s width}.statrow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.stat{padding:13px;border-radius:18px;background:#fffdf7;border:1px solid var(--line)}.stat b{display:block;font-size:22px}.stat span{color:var(--muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+  .grid{display:grid;grid-template-columns:340px 1fr;gap:18px}.side{padding:18px;height:max-content;position:sticky;top:18px}.main{padding:18px}.sectionTitle{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}h2{margin:0;font-size:23px;letter-spacing:-.025em}.hint{color:var(--muted);font-size:14px;line-height:1.45}.phaseList{display:grid;gap:10px}.phase{padding:13px;border-radius:18px;border:1px solid var(--line);background:#fffdf7;display:flex;gap:12px;align-items:flex-start}.phase.active{outline:3px solid rgba(66,107,91,.18);border-color:rgba(66,107,91,.45)}.phase.done{background:#f1f6ed}.num{min-width:29px;height:29px;border-radius:999px;display:grid;place-items:center;background:#eadfcd;font-weight:900;color:var(--muted)}.active .num,.done .num{background:var(--accent);color:#fff}.phase h3{margin:0 0 3px;font-size:15px}.phase p{margin:0;color:var(--muted);font-size:13px;line-height:1.35}.panel{display:none}.panel.active{display:block;animation:pop .28s ease}.promptBox{border-radius:22px;background:#fffdf7;border:1px solid var(--line);padding:18px;margin-bottom:14px}.prompt{font-size:22px;line-height:1.25;font-weight:850;letter-spacing:-.02em}.micro{font-size:13px;color:var(--muted);margin-top:8px}.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.chip{border-radius:999px;padding:8px 11px;background:#efe6d6;color:#4f473b;border:1px solid var(--line);font-weight:750;font-size:13px}.chip.selected{background:var(--accent);color:white;border-color:var(--accent)}
+  textarea,input[type=text]{width:100%;border:1px solid var(--line);background:white;border-radius:18px;padding:14px;color:var(--ink);outline:none;resize:vertical}textarea:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(66,107,91,.12)}textarea{min-height:118px}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.noteGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}.note{border:1px solid var(--line);border-radius:20px;padding:14px;background:#fff;position:relative}.note .tag{display:inline-block;font-size:11px;text-transform:uppercase;letter-spacing:.07em;font-weight:900;color:var(--accent);background:#edf3eb;border-radius:999px;padding:5px 8px;margin-bottom:8px}.note p{margin:0;color:#3a352e;line-height:1.42}.voteBar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.vote{background:#f2eadb;color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-weight:800}.vote.on{background:var(--accent3);color:white;border-color:var(--accent3)}.canvas{display:grid;grid-template-columns:1fr 1fr;gap:12px}.tile{background:#fff;border:1px solid var(--line);border-radius:20px;padding:14px;min-height:120px}.tile h3{margin:0 0 8px;font-size:15px}.tile ul{margin:0;padding-left:19px;color:var(--muted);line-height:1.45}.garden{height:215px;border-radius:24px;border:1px solid var(--line);background:linear-gradient(#e9f2e5 0 58%,#d7c29e 58%);position:relative;overflow:hidden}.plant{position:absolute;bottom:77px;transform-origin:bottom center;animation:grow .5s ease both}.stem{width:6px;background:#447c52;margin:auto;border-radius:99px}.flower{width:36px;height:36px;border-radius:50%;background:var(--accent2);display:grid;place-items:center;color:white;font-weight:900;box-shadow:0 5px 12px rgba(0,0,0,.12)}.leaf{position:absolute;width:20px;height:12px;background:#6f985f;border-radius:20px 20px 0 20px;left:50%;top:45%;transform:rotate(-30deg)}.toast{position:fixed;right:22px;bottom:22px;background:#25221d;color:white;padding:13px 15px;border-radius:16px;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);transition:.25s}.toast.show{opacity:1;transform:translateY(0)}.export{white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px;max-height:330px;overflow:auto;color:#3f382f}.kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#eee3d1;border:1px solid #ddceb7;border-radius:7px;padding:2px 6px}.miniCheck{display:flex;gap:8px;align-items:center;padding:9px 10px;background:#fff;border:1px solid var(--line);border-radius:14px;margin:6px 0}.miniCheck input{accent-color:var(--accent)}
+  @keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}@keyframes grow{from{transform:scaleY(.25);opacity:.2}to{transform:scaleY(1);opacity:1}}
+  @media(max-width:860px){.hero,.grid,.row,.canvas{grid-template-columns:1fr}.side{position:static}.app{padding:16px}.statrow{grid-template-columns:1fr 1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <section class="hero">
+    <div class="card intro">
+      <div class="eyebrow"><span class="dot"></span> IEG demo · cooperative, non-competitive</div>
+      <h1>Commons Studio</h1>
+      <p class="sub">A single-session classroom prototype where students anonymously contribute useful thinking moves, then the group assembles a shared “argument commons.” No badges, no individual scores, no leaderboard — the reward is a better collective draft plan.</p>
+      <div class="toolbar">
+        <button class="btn" id="startBtn">Start the studio</button>
+        <button class="btn secondary" id="sampleBtn">Load sample class</button>
+        <button class="btn ghost" id="resetBtn">Reset</button>
+      </div>
+    </div>
+    <div class="card status">
+      <div class="sectionTitle"><h2>Class commons</h2><span class="hint">shared threshold, not ranking</span></div>
+      <div class="garden" id="garden" aria-label="Visual garden representing class progress"></div>
+      <div class="meter"><div class="fill" id="fill"></div></div>
+      <div class="statrow">
+        <div class="stat"><b id="ideasCount">0</b><span>useful notes</span></div>
+        <div class="stat"><b id="coverageCount">0/4</b><span>areas covered</span></div>
+        <div class="stat"><b id="readyCount">0%</b><span>commons ready</span></div>
+      </div>
+    </div>
+  </section>
+  <section class="grid">
+    <aside class="card side">
+      <div class="sectionTitle"><h2>Flow</h2></div>
+      <div class="phaseList" id="phaseList"></div>
+      <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+      <p class="hint"><b>Facilitator note:</b> this prototype avoids individual rewards. It uses contribution diversity, anonymous synthesis, and a class-wide readiness meter to promote cooperation without shaming slower or quieter students.</p>
+    </aside>
+    <main class="card main">
+      <div id="panels"></div>
+    </main>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  const phases = [
+    {title:'Frame the commons', desc:'Pick a shared writing challenge and success criteria.'},
+    {title:'Seed ideas anonymously', desc:'Add evidence, questions, counterpoints, and reader concerns.'},
+    {title:'Quiet peer sorting', desc:'Vote for usefulness, not popularity or speed.'},
+    {title:'Build the shared map', desc:'Combine the class notes into an argument plan.'},
+    {title:'Export reflection', desc:'Take away a reusable class artifact.'}
+  ];
+  const categories = ['Evidence','Question','Counterpoint','Reader concern'];
+  let state = JSON.parse(localStorage.getItem('commonsStudio')||'null') || {
+    phase:0, challenge:'How can an introductory module proposal become more convincing to a skeptical reader?', criteria:['Clear audience','Specific stakes','Evidence-based reasoning'], notes:[], votes:{}, checks:{claim:false,evidence:false,counter:false,next:false}
+  };
+  const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+  function save(){ localStorage.setItem('commonsStudio',JSON.stringify(state)); render(); }
+  function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
+  function readiness(){
+    const cats = new Set(state.notes.map(n=>n.cat));
+    const base = Math.min(45, state.notes.length*7) + cats.size*8;
+    const votes = Object.values(state.votes).flat().length * 2;
+    const checks = Object.values(state.checks).filter(Boolean).length * 5;
+    return Math.min(100, base+votes+checks);
+  }
+  function renderShell(){
+    $('#phaseList').innerHTML = phases.map((p,i)=>`<div class="phase ${i===state.phase?'active':''} ${i<state.phase?'done':''}" data-phase="${i}"><div class="num">${i<state.phase?'✓':i+1}</div><div><h3>${p.title}</h3><p>${p.desc}</p></div></div>`).join('');
+    $$('#phaseList .phase').forEach(el=>el.onclick=()=>{state.phase=+el.dataset.phase;save();});
+  }
+  function nav(){return `<div class="toolbar"><button class="btn secondary" id="back" ${state.phase===0?'disabled':''}>Back</button><button class="btn" id="next">${state.phase===4?'Refresh export':'Continue'}</button></div>`}
+  function panels(){
+    const notes = state.notes;
+    const noteCards = notes.map(n=>`<div class="note"><span class="tag">${n.cat}</span><p>${escape(n.text)}</p><div class="voteBar">${['Useful','Surprising','Needs evidence'].map(v=>`<button class="vote ${(state.votes[n.id]||[]).includes(v)?'on':''}" data-id="${n.id}" data-vote="${v}">${v}</button>`).join('')}</div></div>`).join('') || '<p class="hint">No notes yet. Add the first seed.</p>';
+    const byCat = categories.map(c=>`<div class="tile"><h3>${c}</h3><ul>${notes.filter(n=>n.cat===c).map(n=>`<li>${escape(n.text)}</li>`).join('') || '<li>No class note yet.</li>'}</ul></div>`).join('');
+    const exportText = makeExport();
+    return [
+      `<section class="panel active"><div class="promptBox"><div class="prompt">What shared writing problem is the class trying to solve?</div><div class="micro">Instead of “earning points,” the group defines what would make everyone’s work stronger.</div></div><label class="hint">Shared challenge</label><textarea id="challenge">${escape(state.challenge)}</textarea><div class="row" style="margin-top:12px"><div><label class="hint">Success criterion 1</label><input type="text" class="crit" value="${escape(state.criteria[0]||'')}"></div><div><label class="hint">Success criterion 2</label><input type="text" class="crit" value="${escape(state.criteria[1]||'')}"></div></div><div style="margin-top:12px"><label class="hint">Success criterion 3</label><input type="text" class="crit" value="${escape(state.criteria[2]||'')}"></div>${nav()}</section>`,
+      `<section class="panel active"><div class="promptBox"><div class="prompt">Add one small piece to the commons.</div><div class="micro">Choose a category. Contributions are intentionally anonymous and equally weighted.</div></div><div class="chips" id="catChips">${categories.map((c,i)=>`<button class="chip ${i===0?'selected':''}" data-cat="${c}">${c}</button>`).join('')}</div><textarea id="noteText" placeholder="Example: A skeptical reader might ask who benefits from this proposal and what evidence shows the need."></textarea><div class="toolbar"><button class="btn" id="addNote">Add anonymous note</button><button class="btn secondary" id="promptMe">Give me a thinking prompt</button></div><hr style="border:0;border-top:1px solid var(--line);margin:18px 0"><div class="noteGrid">${noteCards}</div>${nav()}</section>`,
+      `<section class="panel active"><div class="promptBox"><div class="prompt">Sort for usefulness, not winners.</div><div class="micro">Students mark notes that could help anyone revise. There is no ranked list, podium, or individual attribution.</div></div><div class="noteGrid">${noteCards}</div>${nav()}</section>`,
+      `<section class="panel active"><div class="promptBox"><div class="prompt">Turn scattered notes into a shared argument map.</div><div class="micro">The class checks whether the commons has enough pieces for a stronger draft.</div></div><div class="canvas">${byCat}</div><div style="margin-top:12px">${[['claim','We can state a focused claim.'],['evidence','We have evidence or examples to support it.'],['counter','We considered a skeptical reader or counterpoint.'],['next','We know the next revision move.']].map(([k,l])=>`<label class="miniCheck"><input type="checkbox" data-check="${k}" ${state.checks[k]?'checked':''}> ${l}</label>`).join('')}</div>${nav()}</section>`,
+      `<section class="panel active"><div class="promptBox"><div class="prompt">Export the class commons.</div><div class="micro">Copy this artifact into a class page, LMS post, or student reflection. Everything stays local in this browser.</div></div><pre class="export" id="exportBox">${escape(exportText)}</pre><div class="toolbar"><button class="btn" id="copyExport">Copy export</button><button class="btn secondary" id="downloadExport">Download .txt</button></div>${nav()}</section>`
+    ][state.phase];
+  }
+  function render(){
+    renderShell(); $('#panels').innerHTML = panels();
+    $('#fill').style.width = readiness()+'%'; $('#ideasCount').textContent=state.notes.length; $('#coverageCount').textContent=(new Set(state.notes.map(n=>n.cat)).size)+'/4'; $('#readyCount').textContent=readiness()+'%'; renderGarden(); bind();
+  }
+  function renderGarden(){
+    const g=$('#garden'); const count=Math.min(14, Math.max(1, Math.ceil(readiness()/8))); let html='';
+    for(let i=0;i<count;i++){ const left=6+(i*13%88), h=28+(i*17+readiness())%82, color=['#b86f3a','#5c6f99','#426b5b','#c79b3b'][i%4]; html+=`<div class="plant" style="left:${left}%;"><div class="flower" style="background:${color}">${i<state.notes.length?'•':''}</div><div class="stem" style="height:${h}px"><span class="leaf"></span></div></div>`; }
+    g.innerHTML=html;
+  }
+  function bind(){
+    $('#back')?.addEventListener('click',()=>{state.phase=Math.max(0,state.phase-1);save();}); $('#next')?.addEventListener('click',()=>{state.phase=Math.min(4,state.phase+1);save();});
+    $('#challenge')?.addEventListener('input',e=>{state.challenge=e.target.value; persistOnly();}); $$('.crit').forEach((el,i)=>el.addEventListener('input',e=>{state.criteria[i]=e.target.value; persistOnly();}));
+    let chosen='Evidence'; $$('#catChips .chip').forEach(ch=>ch.onclick=()=>{$$('#catChips .chip').forEach(x=>x.classList.remove('selected')); ch.classList.add('selected'); chosen=ch.dataset.cat;});
+    $('#addNote')?.addEventListener('click',()=>{ const txt=$('#noteText').value.trim(); if(!txt){toast('Add a short note first.');return;} state.notes.push({id:Date.now()+Math.random().toString(16).slice(2),cat:chosen,text:txt}); save(); toast('Added to the commons.'); });
+    $('#promptMe')?.addEventListener('click',()=>{ const prompts=['What would a skeptical reader question first?','What example would make the stakes concrete?','What assumption is the proposal relying on?','What would make the audience care earlier?']; $('#noteText').value=prompts[Math.floor(Math.random()*prompts.length)]; });
+    $$('.vote').forEach(v=>v.onclick=()=>{ const id=v.dataset.id, val=v.dataset.vote; state.votes[id]=state.votes[id]||[]; state.votes[id]=state.votes[id].includes(val)?state.votes[id].filter(x=>x!==val):[...state.votes[id],val]; save(); });
+    $$('input[data-check]').forEach(c=>c.onchange=()=>{state.checks[c.dataset.check]=c.checked; save();});
+    $('#copyExport')?.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(makeExport());toast('Copied.');}catch(e){toast('Select and copy manually.');}});
+    $('#downloadExport')?.addEventListener('click',()=>{ const blob=new Blob([makeExport()],{type:'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='commons-studio-export.txt'; a.click(); URL.revokeObjectURL(a.href); });
+  }
+  function persistOnly(){ localStorage.setItem('commonsStudio',JSON.stringify(state)); $('#fill').style.width=readiness()+'%'; }
+  function makeExport(){
+    const grouped = categories.map(c=>`\n${c}\n${'-'.repeat(c.length)}\n`+(state.notes.filter(n=>n.cat===c).map((n,i)=>`${i+1}. ${n.text}`).join('\n')||'No notes yet.')).join('\n');
+    const checks=Object.entries(state.checks).filter(x=>x[1]).map(([k])=>'- '+({claim:'Focused claim',evidence:'Evidence/examples',counter:'Skeptical reader/counterpoint',next:'Next revision move'}[k])).join('\n')||'- No synthesis checks completed yet.';
+    return `COMMONS STUDIO EXPORT\n\nShared challenge:\n${state.challenge}\n\nSuccess criteria:\n- ${state.criteria.filter(Boolean).join('\n- ')}\n\nClass readiness: ${readiness()}%\nUseful notes: ${state.notes.length}\nCoverage: ${new Set(state.notes.map(n=>n.cat)).size}/4 areas\n${grouped}\n\nSynthesis checks:\n${checks}\n\nReflection prompt:\nWhich class note changed, complicated, or strengthened your own draft plan?`;
+  }
+  function escape(s){return String(s||'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));}
+  $('#startBtn').onclick=()=>{state.phase=0;save(); document.querySelector('.grid').scrollIntoView({behavior:'smooth'});};
+  $('#sampleBtn').onclick=()=>{state.notes=[{id:'a',cat:'Reader concern',text:'A skeptical reader may not know why this module matters beyond completing an assignment.'},{id:'b',cat:'Evidence',text:'Use one concrete example from an existing course activity to show the proposal solves a real problem.'},{id:'c',cat:'Counterpoint',text:'Too much structure might reduce student ownership, so optional paths may be better than required steps.'},{id:'d',cat:'Question',text:'What would success look like after one week, not just at the end of the project?'}];state.phase=2;save();toast('Sample class loaded.');};
+  $('#resetBtn').onclick=()=>{localStorage.removeItem('commonsStudio'); location.reload();};
+  render();
+})();
+</script>
+</body>
+</html>
