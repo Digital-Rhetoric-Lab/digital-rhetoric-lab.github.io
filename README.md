@@ -1,3 +1,3 @@
 # DRL Demos
 
-- Freewrite.html -- help students freewrite without pauses
+See the demos [here](https://digital-rhetoric-lab.github.io)
