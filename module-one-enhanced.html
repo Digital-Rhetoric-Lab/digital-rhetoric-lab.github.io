@@ -104,6 +104,19 @@ textarea{min-height:160px;resize:vertical}.large{min-height:280px}
 body.focus-mode .app-shell{max-width:900px;padding-top:18px}
 .focus-exit{display:none;position:fixed;right:18px;top:18px;z-index:70}
 .focus-exit{display:none!important}
+
+.sort-game{display:grid;gap:16px}
+.sort-bank,.sort-zones{display:grid;gap:12px}
+.sort-bank{grid-template-columns:repeat(2,minmax(0,1fr))}
+.sort-zones{grid-template-columns:repeat(2,minmax(0,1fr))}
+.sort-card{border:1px solid var(--border);background:white;border-radius:18px;padding:13px;cursor:grab;box-shadow:0 6px 14px rgba(23,32,51,.06);font-weight:750;color:#25304a}
+.sort-card:active{cursor:grabbing}.sort-card:focus-visible{outline:none;box-shadow:var(--focus)}
+.sort-card.placed{margin:8px 0;background:#fbfcff}.sort-card.correct{border-color:#bbf7d0;background:#ecfdf5}.sort-card.incorrect{border-color:#fecaca;background:#fef2f2}
+.drop-zone{min-height:160px;border:2px dashed var(--border);border-radius:20px;padding:14px;background:#fbfcff}
+.drop-zone.drag-over{border-color:var(--brand);background:#f8f9ff}.drop-zone h3{display:flex;align-items:center;gap:8px;margin-bottom:6px}.drop-zone .field-help{margin-bottom:10px}
+.sort-feedback{font-weight:900;margin-top:8px}.sort-feedback.good{color:var(--success)}.sort-feedback.warn{color:var(--warning)}
+@media(max-width:900px){.sort-bank,.sort-zones{grid-template-columns:1fr}}
+
 .manual-copy{width:100%;min-height:240px}
 @media(max-width:900px){.app-top,.grid-2,.grid-3{grid-template-columns:1fr}.status-card{min-width:0}.progress-shell{grid-template-columns:1fr;border-radius:22px}.progress-text{white-space:normal}.screen-head,.screen-footer{flex-direction:column;align-items:stretch}.screen-actions{justify-content:flex-start}.screen-body,.screen-head,.screen-footer{padding-left:18px;padding-right:18px}.stage{border-radius:24px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation:none!important}}
@@ -175,6 +188,18 @@ const literacies=[
   {id:'critical',icon:'⚖️',title:'Critical Digital Literacy',short:'Power + bias + access + ideology',definition:'Critical digital literacy is the ability to recognize how social, political, cultural, and ideological power shapes digital tools, platforms, products, and environments. It helps us notice bias, unequal access, misinformation, disinformation, and the ways some voices, designs, or perspectives are privileged over others.',example:'You open YouTube, Instagram, TikTok, or another platform to watch one video or read one post. Soon, the platform keeps recommending similar content. Critical digital literacy helps you see that the platform is not simply showing you “what is out there.” What appears on your screen has already been filtered, ranked, and promoted by systems designed by people and institutions. These systems are shaped by profit motives, advertising, platform policies, cultural assumptions, political pressures, ideological interests, and decisions about what kind of content should become more visible. Your feed is not neutral. It can make some voices, perspectives, identities, products, lifestyles, or beliefs seem more visible, normal, credible, or important than others. It can also help misinformation and disinformation spread quickly when misleading content is emotional, dramatic, or easy to share.',details:['A recommendation algorithm may help you find content related to your interests, but it may also keep showing similar viewpoints until one perspective or political viewpoint starts to feel like the dominant or “common sense” view.','A student watches one fitness, beauty, or productivity video, and the feed begins to promote more content about “ideal” bodies, lifestyles, routines, or success.','A search result shows sponsored or highly ranked sources first, while smaller community voices, local perspectives, or non-English sources are harder to find.','A social media post may help people share personal experiences, but it may also spread misleading health, political, or social claims, even though it does not provide reliable evidence.','A generative AI tool may give an answer that sounds neutral, but it may also leave out certain cultures, communities, or perspectives.','A platform reaction feature may make it easy to like, share, repost, or react quickly, but it may also make it harder to pause, verify, compare sources, or understand context.'],question:'Did you notice bias, power, access, misinformation, representation, privacy, or unequal visibility?',badge:'Bias Detector'},
   {id:'technical',icon:'⚙️',title:'Functional Digital Literacy',short:'Operating tools for academic purposes',definition:'Functional digital literacy is the ability to operate digital devices and use software to realize functional purposes, especially academic purposes such as for completing writing assignments.',example:'Functional digital literacy includes the practical ability to use devices, software, file formats, comments, version history, exports, privacy settings, accessibility tools, templates, upload portals, and formatting features so academic work reaches the right audience in the right form.',details:['Use comments, version history, shared-document permissions, and file naming to manage collaborative writing.','Use export options, file formats, upload portals, templates, and formatting features to complete writing assignments.','Use privacy, notification, accessibility, sharing, location, account, security, and recommendation settings to understand what a tool controls.'],question:'Did you operate a device, setting, software feature, format, or system to complete an academic task?',badge:'Tool Explorer'}
 ];
+
+const sortingExamples=[
+  {id:'sort1',lit:'rhetorical',text:'I changed a class announcement from casual group-chat wording into a more formal email for my professor.'},
+  {id:'sort2',lit:'cognitive',text:'I compared a news article, a database source, and an AI summary before deciding what evidence to trust.'},
+  {id:'sort3',lit:'critical',text:'I noticed that sponsored results and popular accounts appeared before smaller community voices.'},
+  {id:'sort4',lit:'technical',text:'Canvas rejected my upload, so I exported the file as a PDF and checked the preview before submitting.'},
+  {id:'sort5',lit:'rhetorical',text:'I redesigned a slide so the image, headline, and short caption worked for people in the back row.'},
+  {id:'sort6',lit:'cognitive',text:'I changed my search terms and checked the author, date, and evidence before saving a source.'},
+  {id:'sort7',lit:'critical',text:'A recommendation feed made one viewpoint seem normal, so I looked for what voices were missing.'},
+  {id:'sort8',lit:'technical',text:'I used comments, version history, and sharing permissions to manage a group writing project.'}
+];
+
 const quiz=[
   ['q1','When you encounter unfamiliar information online, what do you usually do first?',[['cognitive','Check who published it and compare it with other sources.'],['critical','Ask who benefits from this version of the information.'],['technical','Look for platform clues like labels, timestamps, or metadata.'],['rhetorical','Think about the intended audience and purpose.']]],
   ['q2','Which experience feels most familiar?',[['rhetorical','Changing your tone for a different audience.'],['technical','Learning a new digital feature through trial and error.'],['critical','Realizing a platform ranked or amplified certain voices.'],['cognitive','Using search terms and source checks to solve a problem.']]],
@@ -236,7 +261,7 @@ const paragraphTrack=[
   {id:'conclusion',title:'Conclusion paragraph',bind:'paragraphTrack.conclusion',prompt:'Reflect on what the three moments show about your growth as a digital reader, writer, and learner.',example:'Together, these moments show that my digital literacy has developed through practice, mistakes, and reflection. I learned to be more careful with sources, more aware of audience, and more patient with digital tools. I also learned that digital networks are not neutral spaces. They shape what I see, how I communicate, and what I need to know in order to participate effectively.',starters:['Together, these moments show that ','My understanding changed because ','In the future, I want to approach digital spaces by '],checklist:['Connects all three moments','Explains growth or change','Looks forward to future digital habits']}
 ];
 
-function defaultState(){return{track:'guided',currentScreen:0,xp:0,xpEvents:{},cardReactions:{},quizAnswers:{},scenario:'',moments:[1,2,3].map(()=>({title:'',fields:{},literacies:[],analysis:{},paragraph:'',checklist:{}})),paragraphTrack:{intro:'',conclusion:'',checklist:{}},essay:{relationship:'',pattern:'',conclusion:'',draft:''},review:{peerNotes:'',checklist:{}},ui:{conceptIndex:0,quizIndex:0,scenarioIndex:0,momentQuestion:[0,0,0],analysisQuestion:[0,0,0],paragraphIndex:0}}}
+function defaultState(){return{track:'guided',currentScreen:0,xp:0,xpEvents:{},skippedScreens:{},sorting:{placements:{},checked:false},cardReactions:{},quizAnswers:{},scenario:'',moments:[1,2,3].map(()=>({title:'',fields:{},literacies:[],analysis:{},paragraph:'',checklist:{}})),paragraphTrack:{intro:'',conclusion:'',checklist:{}},essay:{relationship:'',pattern:'',conclusion:'',draft:''},review:{peerNotes:'',checklist:{}},ui:{conceptIndex:0,quizIndex:0,scenarioIndex:0,momentQuestion:[0,0,0],analysisQuestion:[0,0,0],paragraphIndex:0}}}
 function merge(base,incoming){
   if(Array.isArray(base)) return base.map((b,i)=>merge(b,incoming&&incoming[i]));
   if(base&&typeof base==='object'){const out={...base};Object.keys(incoming||{}).forEach(k=>out[k]=merge(base[k],incoming[k]));return out}
@@ -319,7 +344,8 @@ function getScreens(){
     {id:'welcome',kicker:'Start',title:'Choose how you want to build your narrative.',render:renderWelcome,complete:()=>true,hint:'Choose a path to begin.'},
     {id:'concepts',kicker:'Concepts',title:'Explore one digital literacy dimension at a time.',render:renderConcepts,complete:()=>Object.keys(state.cardReactions).length>=2,hint:'React to at least 2 literacy cards.'},
     {id:'profile',kicker:'Profile',title:'Take a quick learner profile quiz.',render:renderProfile,complete:()=>Object.keys(state.quizAnswers).length>=3,hint:'Answer at least 3 profile questions.'},
-    {id:'finder',kicker:'Idea Finder',title:'Find a digital moment worth writing about.',render:renderFinder,complete:()=>!!state.scenario,hint:'Select a scenario that could become a narrative moment.'}
+    {id:'finder',kicker:'Idea Finder',title:'Find a digital moment worth writing about.',render:renderFinder,complete:()=>!!state.scenario,hint:'Select a scenario that could become a narrative moment.'},
+    {id:'sorting',kicker:'Sorting Game',title:'Sort real examples into digital literacy concepts.',render:renderSortingGame,complete:()=>sortingComplete(),hint:'Drag each example into a literacy category, then check your sorting. You can also skip for now.'}
   ];
   if(state.track==='paragraph'){
     return [...common,...paragraphTrack.map((p,i)=>({id:'para-'+p.id,kicker:'Paragraph Track',title:p.title,render:()=>renderParagraphTrack(i),complete:()=>wc(getPath(state,p.bind))>=(p.id==='intro'||p.id==='conclusion'?70:120),hint:p.id==='intro'||p.id==='conclusion'?'Draft at least 70 words.':'Draft at least 120 words.'})),
@@ -343,7 +369,7 @@ function render(){
   const screens=getScreens();
   state.currentScreen=clamp(state.currentScreen,0,screens.length-1);
   const screen=screens[state.currentScreen];
-  const complete=screen.complete();
+  const complete=isScreenReady(screen);
   $('#stage').innerHTML=`<section>
     <div class="screen-head">
       <div>
@@ -357,18 +383,42 @@ function render(){
     <div class="screen-footer">
       ${btn('prev-screen','← Back','btn secondary',state.currentScreen===0?'disabled':'')}
       <div class="footer-center">
-        Screen ${state.currentScreen+1} of ${screens.length} · ${complete?'Complete':'In progress'}
+        Screen ${state.currentScreen+1} of ${screens.length} · ${complete?(state.skippedScreens[screen.id]?'Skipped for now':'Complete'):'In progress'}
         ${complete?'':`<span class="completion-hint">${esc(screen.hint||'Keep developing this screen.')}</span>`}
       </div>
-      ${btn('next-screen','Next →','btn brand',(!complete||state.currentScreen===screens.length-1)?'disabled':'')}
+      <div class="starter-bank" style="margin:0">${!complete&&state.currentScreen<screens.length-1?btn('skip-screen','Skip for now','btn secondary'):''}${btn('next-screen','Next →','btn brand',(!complete||state.currentScreen===screens.length-1)?'disabled':'')}</div>
     </div>
   </section>`;
   bindStageEvents();updateShell();updateJump();
 }
 function renderStepStrip(screens){
-  return `<div class="step-strip" aria-label="Screen progress">${screens.map((s,i)=>`<button class="step-dot ${s.complete()?'done':''} ${i===state.currentScreen?'active':''}" type="button" data-action="jump-screen" data-index="${i}" aria-label="Go to screen ${i+1}: ${esc(s.kicker)}">${i+1}</button>`).join('')}</div>`;
+  return `<div class="step-strip" aria-label="Screen progress">${screens.map((s,i)=>`<button class="step-dot ${isScreenReady(s)?'done':''} ${i===state.currentScreen?'active':''}" type="button" data-action="jump-screen" data-index="${i}" aria-label="Go to screen ${i+1}: ${esc(s.kicker)}">${i+1}</button>`).join('')}</div>`;
 }
 
+function sortingComplete(){return sortingExamples.every(ex=>state.sorting.placements[ex.id]===ex.lit)&&state.sorting.checked===true}
+function sortingScore(){return sortingExamples.filter(ex=>state.sorting.placements[ex.id]===ex.lit).length}
+function renderSortingGame(){
+  const placedIds=new Set(Object.keys(state.sorting.placements||{}));
+  const bank=sortingExamples.filter(ex=>!placedIds.has(ex.id));
+  const feedback=state.sorting.checked?`<div class="sort-feedback ${sortingComplete()?'good':'warn'}">${sortingScore()} of ${sortingExamples.length} sorted correctly. ${sortingComplete()?'Great — you are ready to choose a writing path.':'Move any incorrect cards and check again, or skip for now.'}</div>`:'';
+  return `<div class="sort-game">
+    <div class="prompt-block"><strong>Drag-and-drop warm-up</strong><p>Before drafting your first moment or paragraph, sort these everyday student examples into the digital literacy concept they best fit. Some examples could connect to more than one concept, but for this quick game, choose the strongest fit.</p><p class="field-help">Tip: On touch screens or keyboards, select a category from the menu on each card instead of dragging.</p></div>
+    <div class="info-card"><h3>Unsorted examples</h3><div class="sort-bank" id="sortBank" data-lit="bank">${bank.length?bank.map(renderSortCard).join(''):'<div class="empty-note">All examples have been placed. Check your sorting below.</div>'}</div></div>
+    <div class="sort-zones">${literacies.map(l=>renderDropZone(l)).join('')}</div>
+    <div class="starter-bank">${btn('check-sorting','Check sorting','btn brand')}${btn('reset-sorting','Reset sorting','btn secondary')}</div>
+    ${feedback}
+  </div>`;
+}
+function renderSortCard(ex){
+  const current=state.sorting.placements[ex.id]||'';
+  let cls='sort-card';
+  if(current){cls+=' placed'; if(state.sorting.checked)cls+=current===ex.lit?' correct':' incorrect';}
+  return `<div class="${cls}" draggable="true" tabindex="0" data-sort-id="${esc(ex.id)}" role="group" aria-label="Sorting example"><p>${esc(ex.text)}</p><label class="field-label" for="pick-${esc(ex.id)}">Place this example</label><select id="pick-${esc(ex.id)}" data-action="sort-select" data-sort-id="${esc(ex.id)}"><option value="">Unsorted</option>${literacies.map(l=>`<option value="${l.id}" ${current===l.id?'selected':''}>${l.icon} ${esc(l.title.replace(' Digital Literacy',''))}</option>`).join('')}</select></div>`;
+}
+function renderDropZone(l){
+  const cards=sortingExamples.filter(ex=>state.sorting.placements[ex.id]===l.id);
+  return `<section class="drop-zone" data-lit="${esc(l.id)}"><h3>${l.icon} ${esc(l.title.replace(' Digital Literacy',''))}</h3><p class="field-help">${esc(l.short)}</p>${cards.length?cards.map(renderSortCard).join(''):'<div class="empty-note">Drop examples here.</div>'}</section>`;
+}
 function renderWelcome(){return `<div class="prompt-block"><strong>Start here</strong><p>Choose a guided question process or a paragraph-by-paragraph practice track.</p></div>
 <div class="grid-2">
   <button class="choice-card ${state.track==='guided'?'selected':''}" type="button" data-action="select-track" data-track="guided">
@@ -451,6 +501,9 @@ function bindStageEvents(){
     if(a==='save-now'){saveState(true);showToast('Saved locally.')}
     if(a==='show-progress')showProgress();
     if(a==='copy-progress')copyText(progressSummary(),'Progress summary copied.');
+    if(a==='skip-screen'){const screens=getScreens(),screen=screens[state.currentScreen];state.skippedScreens[screen.id]=true;saveState(true);showToast('Skipped for now. You can return from the step buttons.');changeScreen(1);return;}
+    if(a==='check-sorting'){state.sorting.checked=true;awardXP('sorting-checked',10,'sorting game checked');saveState(true);render();return;}
+    if(a==='reset-sorting'){state.sorting.placements={};state.sorting.checked=false;saveState(true);render();return;}
     if(a==='select-track'){state.track=el.dataset.track;state.currentScreen=1;awardXP('track-'+state.track,10,'learning path selected');saveState(true);render();focusScreenTitle()}
     if(a==='concept-prev'||a==='concept-next'){state.ui.conceptIndex=clamp(state.ui.conceptIndex+(a==='concept-next'?1:-1),0,literacies.length-1);saveState(true);render()}
     if(a==='quiz-prev'||a==='quiz-next'){state.ui.quizIndex=clamp(state.ui.quizIndex+(a==='quiz-next'?1:-1),0,quiz.length-1);saveState(true);render()}
@@ -468,8 +521,13 @@ function bindStageEvents(){
     if(a==='download')downloadText();
     if(a==='clear')clearAll();
   };
+  stage.ondragstart=e=>{const card=e.target.closest('[data-sort-id]');if(!card)return;e.dataTransfer.setData('text/plain',card.dataset.sortId);e.dataTransfer.effectAllowed='move'};
+  stage.ondragover=e=>{const zone=e.target.closest('.drop-zone,#sortBank');if(!zone)return;e.preventDefault();zone.classList.add('drag-over')};
+  stage.ondragleave=e=>{const zone=e.target.closest('.drop-zone,#sortBank');if(zone)zone.classList.remove('drag-over')};
+  stage.ondrop=e=>{const zone=e.target.closest('.drop-zone,#sortBank');if(!zone)return;e.preventDefault();zone.classList.remove('drag-over');const id=e.dataTransfer.getData('text/plain');if(!id)return;const lit=zone.dataset.lit;if(lit==='bank')delete state.sorting.placements[id];else state.sorting.placements[id]=lit;state.sorting.checked=false;awardXP('sort-place-'+id,3,'example sorted');saveState(true);render()};
   stage.onchange=e=>{
     const t=e.target;
+    if(t.dataset.action==='sort-select'){if(t.value)state.sorting.placements[t.dataset.sortId]=t.value;else delete state.sorting.placements[t.dataset.sortId];state.sorting.checked=false;awardXP('sort-place-'+t.dataset.sortId,3,'example sorted');saveState(true);render();return}
     if(t.name==='conceptReaction'){const l=literacies[state.ui.conceptIndex];state.cardReactions[l.id]=t.value;awardXP('concept-'+l.id,8,l.title.replace(' Digital Literacy','')+' explored');saveState(true);render();return}
     if(quiz.some(q=>q[0]===t.name)){state.quizAnswers[t.name]=t.value;awardXP('quiz-'+t.name,8,'profile question answered');saveState(true);render();return}
     if(t.dataset.action==='lit-toggle'){const i=+t.dataset.index,lit=t.dataset.lit,arr=state.moments[i].literacies;if(t.checked&&!arr.includes(lit))arr.push(lit);if(!t.checked)state.moments[i].literacies=arr.filter(x=>x!==lit);awardXP('lit-'+i+'-'+lit,6,'literacy tag connected');saveState(true);render();return}
@@ -511,10 +569,11 @@ function toggleFocus(){
   document.body.classList.add('focus-mode');
   showToast('Focus mode is the only view. Use View progress for XP and requirements.');
 }
+function isScreenReady(screen){return !!(screen.complete()||state.skippedScreens[screen.id])}
 function canEnterScreen(target){
   const screens=getScreens();
   if(target<=state.currentScreen)return true;
-  for(let i=0;i<target;i++){if(!screens[i].complete())return false;}
+  for(let i=0;i<target;i++){if(!isScreenReady(screens[i]))return false;}
   return true;
 }
 function goToScreen(target){
@@ -522,14 +581,14 @@ function goToScreen(target){
   if(!canEnterScreen(target)){showToast('Finish the required items before moving ahead.');return;}
   state.currentScreen=target;saveState(true);render();focusScreenTitle();
 }
-function changeScreen(d){const screens=getScreens(),target=clamp(state.currentScreen+d,0,screens.length-1);if(target>state.currentScreen&&!screens[state.currentScreen].complete()){showToast('Complete this screen before continuing.');return;}goToScreen(target)}
+function changeScreen(d){const screens=getScreens(),target=clamp(state.currentScreen+d,0,screens.length-1);if(target>state.currentScreen&&!isScreenReady(screens[state.currentScreen])){showToast('Complete this screen, or use Skip for now.');return;}goToScreen(target)}
 function focusScreenTitle(){setTimeout(()=>$('#screenTitle')?.focus(),0)}
 function updateJump(){const screens=getScreens();$('#screenJump').innerHTML=screens.map((s,i)=>`<option value="${i}" ${i===state.currentScreen?'selected':''}>${i+1}. ${esc(s.kicker)} — ${esc(s.title)}</option>`).join('')}
 function updateShell(){
   state.xp=calculateXP();
   const lvl=levelFromXP(state.xp),next=nextLevelTarget(lvl),prev=lvl===1?0:nextLevelTarget(lvl-1),toNext=clamp(Math.round((state.xp-prev)/(next-prev)*100),0,100);
   $('#xpNumber').textContent=state.xp+' XP';$('#levelPill').textContent='Level '+lvl;$('#levelFill').style.width=toNext+'%';
-  const screens=getScreens(),complete=screens.filter(s=>s.complete()).length,pct=Math.round(complete/screens.length*100);
+  const screens=getScreens(),complete=screens.filter(s=>isScreenReady(s)).length,pct=Math.round(complete/screens.length*100);
   $('#progressFill').style.width=pct+'%';$('#progressBar').setAttribute('aria-valuenow',pct);$('#progressText').textContent=`${pct}% complete · ${complete} of ${screens.length} screens ready`;renderBadges();
 }
 function renderBadges(){const earned=new Set();literacies.forEach(l=>{if(state.moments.some(m=>m.literacies.includes(l.id))||state.cardReactions[l.id])earned.add(l.badge)});if(state.xp>=60)earned.add('Level 2 Learner');if(state.xp>=150)earned.add('Draft Builder');if(state.moments.some(m=>wc(m.paragraph)>=120))earned.add('Detail Builder');if(wc(state.essay.draft)>=350)earned.add('Narrative Connector');if(Object.values(state.review.checklist).filter(Boolean).length>=5)earned.add('Revision Ready');const all=[...literacies.map(l=>l.badge),'Level 2 Learner','Draft Builder','Detail Builder','Narrative Connector','Revision Ready'];$('#badgeRow').innerHTML=all.map(b=>`<span class="badge ${earned.has(b)?'earned':''}">${esc(b)}</span>`).join('')}
@@ -614,7 +673,7 @@ function fallbackCopy(text,msg){const a=document.createElement('textarea');a.val
 function downloadText(){const blob=new Blob([compileExport()],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='digital-literacy-narrative.txt';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);awardXP('download',10,'work exported')}
 function compileExport(){const lines=['Digital Literacy Narrative Builder Export','Track: '+(state.track==='guided'?'Guided Draft Builder':'Paragraph-by-Paragraph Practice'),'XP: '+state.xp,''];state.moments.forEach((m,i)=>{lines.push('Moment '+(i+1)+': '+(m.title||'Untitled'));guidedFields.forEach(([k,l])=>lines.push(l+' '+(m.fields[k]||'')));lines.push('Literacy dimensions: '+(m.literacies.join(', ')||'None selected'),'Analysis:');analysisQuestions.forEach(([k,l])=>lines.push('- '+l+' '+(m.analysis[k]||'')));lines.push('Paragraph:',m.paragraph||'','')});lines.push('Paragraph Track Introduction:',state.paragraphTrack.intro||'','','Paragraph Track Conclusion:',state.paragraphTrack.conclusion||'','','Essay Draft:',state.essay.draft||'','','Peer/Self Review Notes:',state.review.peerNotes||'');return lines.join('\n')}
 function clearAll(){const typed=prompt('This will permanently clear saved work from this browser. Type CLEAR to continue. Download a copy first if needed.');if(typed!=='CLEAR')return;localStorage.removeItem(STORAGE_KEY);location.reload()}
-function progressSummary(){state.xp=calculateXP();const screens=getScreens(),complete=screens.filter(s=>s.complete()).length,next=nextBenchmark(state.xp);return `Digital Literacy Narrative Progress
+function progressSummary(){state.xp=calculateXP();const screens=getScreens(),complete=screens.filter(s=>isScreenReady(s)).length,next=nextBenchmark(state.xp);return `Digital Literacy Narrative Progress
 Track: ${state.track}
 XP: ${state.xp}/600 (${xpBenchmarkLabel(state.xp)})
 Next benchmark: ${next?next.label+' at '+next.xp+' XP':'all benchmarks reached'}
@@ -626,12 +685,12 @@ Essay words: ${wc(state.essay.draft)}`}
 
 function showProgress(){
   state.xp=calculateXP();
-  const screens=getScreens(),complete=screens.filter(s=>s.complete()).length,pct=Math.round(complete/screens.length*100),next=nextBenchmark(state.xp);
+  const screens=getScreens(),complete=screens.filter(s=>isScreenReady(s)).length,pct=Math.round(complete/screens.length*100),next=nextBenchmark(state.xp);
   const rows=XP_BENCHMARKS.map(b=>`<li class="${state.xp>=b.xp?'good':'warn'}"><strong>${b.label}: ${b.xp} XP</strong> — ${b.meaning}${state.xp>=b.xp?' ✓':''}</li>`).join('');
-  const reqs=screens.map((s,i)=>`<label><input type="checkbox" disabled ${s.complete()?'checked':''}><span>${i+1}. ${esc(s.kicker)} — ${esc(s.complete()?'Complete':s.hint||'In progress')}</span></label>`).join('');
+  const reqs=screens.map((s,i)=>`<label><input type="checkbox" disabled ${isScreenReady(s)?'checked':''}><span>${i+1}. ${esc(s.kicker)} — ${esc(s.complete()?'Complete':s.hint||'In progress')}</span></label>`).join('');
   openModal('Progress','XP is deterministic and based only on completed major requirements.',`<div class="grid-2"><div class="info-card"><h3>${state.xp}/600 XP · ${xpBenchmarkLabel(state.xp)}</h3><div class="mini-meter"><span style="width:${Math.round(state.xp/600*100)}%"></span></div><p class="field-help">${next?'Next: '+next.label+' at '+next.xp+' XP.':'All XP benchmarks reached.'}</p><h3>Benchmarks</h3><ul class="quality-list">${rows}</ul></div><div class="info-card"><h3>${pct}% complete · ${complete} of ${screens.length} screens ready</h3><div class="checklist">${reqs}</div></div></div>`);
 }
-function showHelp(){openModal('Help','This app saves locally in this browser only. Download your work before switching devices or clearing browser data.',`<ol class="quality-list"><li>Use the numbered step buttons and Back/Next buttons to move between screens.</li><li>The sentence-frame questions show the sentence your answer will enter, so your answers can become body paragraphs instead of disconnected notes.</li><li>The timeline orders your moments; the literacy map shows which digital literacy dimensions each moment supports.</li><li>Peer review prompts are clickable revision questions. Click one to place it in the notes box, then have a peer answer it or answer it yourself.</li><li>Use Download .txt on the Review screen to keep a copy outside this browser.</li><li>Progression is locked until the current screen requirements are complete. XP is deterministic and appears in View progress.</li></ol>`)}
+function showHelp(){openModal('Help','This app saves locally in this browser only. Download your work before switching devices or clearing browser data.',`<ol class="quality-list"><li>Use the numbered step buttons and Back/Next buttons to move between screens.</li><li>After the moment finder, the sorting game helps you connect examples to literacy concepts before you begin drafting. The sentence-frame questions show the sentence your answer will enter, so your answers can become body paragraphs instead of disconnected notes.</li><li>The timeline orders your moments; the literacy map shows which digital literacy dimensions each moment supports.</li><li>Peer review prompts are clickable revision questions. Click one to place it in the notes box, then have a peer answer it or answer it yourself.</li><li>Use Download .txt on the Review screen to keep a copy outside this browser.</li><li>Progression is locked until the current screen requirements are complete, but Skip for now lets students move ahead and return later. XP is deterministic and appears in View progress.</li></ol>`)}
 function openModal(title,subtitle,html){lastModalTrigger=document.activeElement;$('#modalTitle').textContent=title;$('#modalSubtitle').textContent=subtitle;$('#modalContent').innerHTML=html;$('#modalBackdrop').classList.add('show');$('#modalCloseBtn').focus()}
 function closeModal(){$('#modalBackdrop').classList.remove('show');if(lastModalTrigger&&typeof lastModalTrigger.focus==='function')lastModalTrigger.focus()}
 function trapModalFocus(e){const focusables=$$('#modalBackdrop button,#modalBackdrop [href],#modalBackdrop input,#modalBackdrop select,#modalBackdrop textarea,#modalBackdrop [tabindex]:not([tabindex="-1"])').filter(el=>!el.disabled&&el.offsetParent!==null);if(!focusables.length)return;const first=focusables[0],last=focusables[focusables.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}
