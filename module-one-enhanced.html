@@ -261,7 +261,7 @@ const paragraphTrack=[
   {id:'conclusion',title:'Conclusion paragraph',bind:'paragraphTrack.conclusion',prompt:'Reflect on what the three moments show about your growth as a digital reader, writer, and learner.',example:'Together, these moments show that my digital literacy has developed through practice, mistakes, and reflection. I learned to be more careful with sources, more aware of audience, and more patient with digital tools. I also learned that digital networks are not neutral spaces. They shape what I see, how I communicate, and what I need to know in order to participate effectively.',starters:['Together, these moments show that ','My understanding changed because ','In the future, I want to approach digital spaces by '],checklist:['Connects all three moments','Explains growth or change','Looks forward to future digital habits']}
 ];
 
-function defaultState(){return{track:'guided',currentScreen:0,xp:0,xpEvents:{},skippedScreens:{},sorting:{placements:{},checked:false},cardReactions:{},quizAnswers:{},scenario:'',moments:[1,2,3].map(()=>({title:'',fields:{},literacies:[],analysis:{},paragraph:'',checklist:{}})),paragraphTrack:{intro:'',conclusion:'',checklist:{}},essay:{relationship:'',pattern:'',conclusion:'',draft:''},review:{peerNotes:'',checklist:{}},ui:{conceptIndex:0,quizIndex:0,scenarioIndex:0,momentQuestion:[0,0,0],analysisQuestion:[0,0,0],paragraphIndex:0}}}
+function defaultState(){return{track:'guided',currentScreen:0,xp:0,xpEvents:{},skippedScreens:{},stats:{version:'1.0',sessionId:'sess-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8),startedAt:new Date().toISOString(),lastEventAt:new Date().toISOString(),activeScreenId:null,activeScreenEnteredAt:Date.now(),screenTime:{},buttons:{},clicks:[],path:[],skips:[],skippedReturn:{},skippedCompleted:{},completedScreens:{},inputEvents:{},submitEvents:[]},sorting:{placements:{},checked:false},cardReactions:{},quizAnswers:{},scenario:'',moments:[1,2,3].map(()=>({title:'',fields:{},literacies:[],analysis:{},paragraph:'',checklist:{}})),paragraphTrack:{intro:'',conclusion:'',checklist:{}},essay:{relationship:'',pattern:'',conclusion:'',draft:''},review:{peerNotes:'',checklist:{}},ui:{conceptIndex:0,quizIndex:0,scenarioIndex:0,momentQuestion:[0,0,0],analysisQuestion:[0,0,0],paragraphIndex:0}}}
 function merge(base,incoming){
   if(Array.isArray(base)) return base.map((b,i)=>merge(b,incoming&&incoming[i]));
   if(base&&typeof base==='object'){const out={...base};Object.keys(incoming||{}).forEach(k=>out[k]=merge(base[k],incoming[k]));return out}
@@ -269,6 +269,30 @@ function merge(base,incoming){
 }
 function loadState(){try{const raw=localStorage.getItem(STORAGE_KEY);return raw?merge(defaultState(),JSON.parse(raw)):defaultState()}catch{return defaultState()}}
 const state=loadState();
+function ensureStats(){
+  const fresh=defaultState().stats;
+  if(!state.stats||typeof state.stats!=='object')state.stats=fresh;
+  Object.keys(fresh).forEach(k=>{if(state.stats[k]===undefined)state.stats[k]=fresh[k]});
+  ['screenTime','buttons','skippedReturn','skippedCompleted','completedScreens','inputEvents'].forEach(k=>{if(!state.stats[k]||typeof state.stats[k]!=='object'||Array.isArray(state.stats[k]))state.stats[k]={}});
+  ['clicks','path','skips','submitEvents'].forEach(k=>{if(!Array.isArray(state.stats[k]))state.stats[k]=[]});
+  if(!state.stats.sessionId)state.stats.sessionId=fresh.sessionId;
+  if(!state.stats.startedAt)state.stats.startedAt=fresh.startedAt;
+}
+ensureStats();
+function statsNow(){return Date.now()}
+function isoNow(){return new Date().toISOString()}
+function currentScreenMeta(){const screens=getScreens();const s=screens[clamp(state.currentScreen,0,screens.length-1)]||{};return{screenId:s.id||'unknown',title:s.title||'',kicker:s.kicker||'',index:state.currentScreen}}
+function addScreenElapsed(id,enteredAt,now){if(!id||!enteredAt)return;const elapsed=Math.max(0,now-enteredAt);if(elapsed<250)return;state.stats.screenTime[id]=(state.stats.screenTime[id]||0)+elapsed;}
+function noteScreenEntry(reason){ensureStats();const now=statsNow(),meta=currentScreenMeta();if(state.stats.activeScreenId&&state.stats.activeScreenId!==meta.screenId)addScreenElapsed(state.stats.activeScreenId,state.stats.activeScreenEnteredAt,now);if(state.stats.activeScreenId!==meta.screenId){const previous=state.stats.activeScreenId;state.stats.activeScreenId=meta.screenId;state.stats.activeScreenEnteredAt=now;state.stats.path.push({at:isoNow(),screenId:meta.screenId,title:meta.title,kicker:meta.kicker,index:meta.index,from:previous||null,reason:reason||'render'});if(state.stats.path.length>1000)state.stats.path.shift();if(state.skippedScreens[meta.screenId]&&!state.stats.skippedReturn[meta.screenId])state.stats.skippedReturn[meta.screenId]=isoNow();}state.stats.lastEventAt=isoNow();}
+function markCompletedScreens(){ensureStats();getScreens().forEach(s=>{if(s.complete&&s.complete()){if(!state.stats.completedScreens[s.id])state.stats.completedScreens[s.id]=isoNow();if(state.skippedScreens[s.id]&&!state.stats.skippedCompleted[s.id])state.stats.skippedCompleted[s.id]=isoNow();}});}
+function buttonLabel(el){return String((el.textContent||el.value||el.getAttribute('aria-label')||el.dataset.action||'').replace(/\s+/g,' ').trim()).slice(0,120)}
+function recordButton(el){ensureStats();const meta=currentScreenMeta(),action=el.dataset.action||el.id||el.tagName.toLowerCase(),label=buttonLabel(el),key=action+'|'+label;state.stats.buttons[key]=(state.stats.buttons[key]||0)+1;state.stats.clicks.push({at:isoNow(),screenId:meta.screenId,index:meta.index,action,label,tag:el.tagName.toLowerCase()});if(state.stats.clicks.length>2000)state.stats.clicks.shift();state.stats.lastEventAt=isoNow();}
+function recordSkip(screen){ensureStats();state.stats.skips.push({at:isoNow(),screenId:screen.id,title:screen.title,index:state.currentScreen});state.stats.lastEventAt=isoNow();}
+function recordInputEvent(t){ensureStats();const bind=t.dataset.bind;if(!bind)return;const rec=state.stats.inputEvents[bind]||{changes:0,firstAt:isoNow(),lastAt:null,maxChars:0,maxWords:0};rec.changes++;rec.lastAt=isoNow();rec.maxChars=Math.max(rec.maxChars,String(t.value||'').length);rec.maxWords=Math.max(rec.maxWords,wc(t.value));const meta=currentScreenMeta();rec.lastScreenId=meta.screenId;state.stats.inputEvents[bind]=rec;state.stats.lastEventAt=isoNow();}
+function statsSnapshot(){ensureStats();markCompletedScreens();const now=statsNow();const snap=JSON.parse(JSON.stringify(state.stats));if(snap.activeScreenId&&snap.activeScreenEnteredAt){snap.screenTime[snap.activeScreenId]=(snap.screenTime[snap.activeScreenId]||0)+Math.max(0,now-snap.activeScreenEnteredAt);}snap.totalActiveMs=Object.values(snap.screenTime||{}).reduce((a,b)=>a+(+b||0),0);snap.totalSkips=(snap.skips||[]).length;snap.returnedToSkippedCount=Object.keys(snap.skippedReturn||{}).length;snap.completedAfterSkipCount=Object.keys(snap.skippedCompleted||{}).length;snap.exportedAt=isoNow();return snap;}
+function submissionPayload(){state.xp=calculateXP();return{app:'Digital Literacy Narrative Builder',format:'DLN_SUBMISSION_V1',version:'1.0',exportedAt:isoNow(),work:{track:state.track,xp:state.xp,scenario:state.scenario,cardReactions:state.cardReactions,quizAnswers:state.quizAnswers,sorting:state.sorting,moments:state.moments,paragraphTrack:state.paragraphTrack,essay:state.essay,review:state.review,textExport:compileExport()},stats:statsSnapshot()};}
+function base64EncodeUnicode(str){const bytes=new TextEncoder().encode(str);let binary='',chunk=0x8000;for(let i=0;i<bytes.length;i+=chunk){binary+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));}return btoa(binary);}
+function downloadSubmission(){const stamp=new Date().toISOString().replace(/[:.]/g,'-').slice(0,19),file='digital-literacy-narrative-submission-'+stamp+'.dlnsubmission.txt';state.stats.submitEvents.push({at:isoNow(),file,xp:calculateXP(),essayWords:wc(state.essay.draft)});const payload=submissionPayload();const encoded=base64EncodeUnicode(JSON.stringify(payload));const content='DLN_SUBMISSION_V1\n'+encoded;const blob=new Blob([content],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=file;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);saveState(true);showToast('Submission file downloaded. Upload that file to your professor.');}
 
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
@@ -370,6 +394,7 @@ function render(){
   const screens=getScreens();
   state.currentScreen=clamp(state.currentScreen,0,screens.length-1);
   const screen=screens[state.currentScreen];
+  noteScreenEntry('render');
   const complete=isScreenReady(screen);
   $('#stage').innerHTML=`<section>
     <div class="screen-head">
@@ -489,13 +514,13 @@ function renderAssembleParagraphTrack(){
 
 function renderReview(){  
   const peerPrompts=['Where does the writer clearly show audience, purpose, platform, or mode?','Where does the writer evaluate a source, tool, or piece of online information?','Where does the writer notice bias, access, power, misinformation, or unequal visibility?','Where does the writer explain how a tool, setting, feature, or format affected the task?','Which paragraph needs more specific digital detail, such as a screen feature, search term, caption, source, setting, or comment?','What should the writer add to make the conclusion show growth more clearly?'];
-  return `<div class="grid-2"><div class="writing-card"><h3>Final checklist</h3><div class="checklist">${finalChecklistItems.map((item,i)=>`<label><input type="checkbox" data-bind="review.checklist.${i}" ${state.review.checklist[i]?'checked':''}><span>${esc(item)}</span></label>`).join('')}</div><div class="starter-bank">${btn('download','Download .txt','btn brand')}${btn('copy-essay','Copy essay')}${btn('clear','Clear saved work','btn danger')}</div></div>  
-  <div class="writing-card"><h3>Peer or self-review prompts</h3><p class="field-help">Click a prompt to add it to the notes box. The prompt is not answered automatically: a peer can type feedback under it, or you can answer it yourself as a self-review question before exporting.</p><div class="starter-bank" data-target="peerNotes">${peerPrompts.map(starter).join('')}</div><textarea id="peerNotes" class="large" data-bind="review.peerNotes" placeholder="Use this space for comments, revision goals, or peer feedback.">${esc(state.review.peerNotes)}</textarea><div class="prompt-block"><strong>How review/export works</strong><p>The checklist helps you verify the essay’s required parts. The peer review prompts help a reader give targeted feedback. Download exports your track, XP, moments, paragraphs, full essay draft, and review notes as a .txt file.</p></div></div></div>`;  
+  return `<div class="grid-2"><div class="writing-card"><h3>Final checklist</h3><div class="checklist">${finalChecklistItems.map((item,i)=>`<label><input type="checkbox" data-bind="review.checklist.${i}" ${state.review.checklist[i]?'checked':''}><span>${esc(item)}</span></label>`).join('')}</div><div class="starter-bank">${btn('submit-work','Submit work','btn brand')}${btn('download','Download readable .txt','btn secondary')}${btn('copy-essay','Copy essay')}${btn('clear','Clear saved work','btn danger')}</div></div>  
+  <div class="writing-card"><h3>Peer or self-review prompts</h3><p class="field-help">Click a prompt to add it to the notes box. The prompt is not answered automatically: a peer can type feedback under it, or you can answer it yourself as a self-review question before exporting.</p><div class="starter-bank" data-target="peerNotes">${peerPrompts.map(starter).join('')}</div><textarea id="peerNotes" class="large" data-bind="review.peerNotes" placeholder="Use this space for comments, revision goals, or peer feedback.">${esc(state.review.peerNotes)}</textarea><div class="prompt-block"><strong>How review/export works</strong><p>The checklist helps you verify the essay’s required parts. The peer review prompts help a reader give targeted feedback. Submit work downloads a Base64-encoded submission file containing your work and usage statistics for your professor. Download readable .txt is only a personal backup.</p></div></div></div>`;  
 }  
 function bindStageEvents(){
   const stage=$('#stage');
   stage.onclick=e=>{
-    const el=e.target.closest('[data-action]');if(!el||el.disabled)return;const a=el.dataset.action;
+    const el=e.target.closest('[data-action]');if(!el||el.disabled)return;recordButton(el);const a=el.dataset.action;
     if(a==='prev-screen')changeScreen(-1);
     if(a==='next-screen')changeScreen(1);
     if(a==='jump-screen'){goToScreen(+el.dataset.index);}
@@ -503,7 +528,7 @@ function bindStageEvents(){
     if(a==='show-progress')showProgress();
     if(a==='copy-progress')copyText(progressSummary(),'Progress summary copied.');
     if(a==='open-freewrite')openFreewrite(el.dataset.freewritePrompt||'');
-    if(a==='skip-screen'){const screens=getScreens(),screen=screens[state.currentScreen];state.skippedScreens[screen.id]=true;saveState(true);showToast('Skipped for now. You can return from the step buttons.');changeScreen(1);return;}
+    if(a==='skip-screen'){const screens=getScreens(),screen=screens[state.currentScreen];recordSkip(screen);state.skippedScreens[screen.id]=true;saveState(true);showToast('Skipped for now. You can return from the step buttons.');changeScreen(1);return;}
     if(a==='check-sorting'){state.sorting.checked=true;awardXP('sorting-checked',10,'sorting game checked');saveState(true);render();return;}
     if(a==='reset-sorting'){state.sorting.placements={};state.sorting.checked=false;saveState(true);render();return;}
     if(a==='select-track'){state.track=el.dataset.track;state.currentScreen=1;awardXP('track-'+state.track,10,'learning path selected');saveState(true);render();focusScreenTitle()}
@@ -521,6 +546,7 @@ function bindStageEvents(){
     if(a==='build-assembled')buildAssembledDraft();
     if(a==='copy-essay')copyText(state.essay.draft||$('#essayDraft')?.value||'','Essay copied.');
     if(a==='download')downloadText();
+    if(a==='submit-work')downloadSubmission();
     if(a==='clear')clearAll();
   };
   stage.ondragstart=e=>{const card=e.target.closest('[data-sort-id]');if(!card)return;e.dataTransfer.setData('text/plain',card.dataset.sortId);e.dataTransfer.effectAllowed='move'};
@@ -537,7 +563,7 @@ function bindStageEvents(){
     if(t.dataset.bind&&t.tagName==='SELECT'){setPath(state,t.dataset.bind,t.value);awardXP('select-'+t.dataset.bind,5,'choice saved');saveState(true);return}
   };
   stage.oninput=e=>{
-    const t=e.target;if(!t.dataset.bind)return;setPath(state,t.dataset.bind,t.value);
+    const t=e.target;if(!t.dataset.bind)return;recordInputEvent(t);setPath(state,t.dataset.bind,t.value);
     if(t.dataset.award){
       const n=wc(t.value);
       if(n>=20)awardXP(t.dataset.award,7,'thoughtful answer saved');
@@ -554,10 +580,10 @@ function bindStageEvents(){
 }
 
 function bindGlobalEvents(){
-  $('#screenJump').onchange=e=>goToScreen(+e.target.value);
-  const fb=$('#focusBtn'); if(fb) fb.onclick=toggleFocus;
-  $('#uxBtn').onclick=showHelp;$('#printBtn').onclick=()=>window.print();
-  $('#modalCloseBtn').onclick=closeModal;
+  $('#screenJump').onchange=e=>{recordButton(e.target);goToScreen(+e.target.value)};
+  const fb=$('#focusBtn'); if(fb) fb.onclick=e=>{recordButton(e.currentTarget);toggleFocus()};
+  $('#uxBtn').onclick=e=>{recordButton(e.currentTarget);showHelp()};$('#printBtn').onclick=e=>{recordButton(e.currentTarget);window.print()};
+  $('#modalCloseBtn').onclick=e=>{recordButton(e.currentTarget);closeModal()};
   $('#modalBackdrop').addEventListener('click',e=>{if(e.target.id==='modalBackdrop')closeModal()});
   document.addEventListener('keydown',e=>{
     const modalOpen=$('#modalBackdrop').classList.contains('show');
@@ -565,7 +591,7 @@ function bindGlobalEvents(){
     if(e.key==='Escape'){if(modalOpen)closeModal();}
     if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();saveState(true);showToast('Saved locally.')}
   });
-  window.addEventListener('beforeunload',()=>saveState(true));
+  window.addEventListener('beforeunload',()=>{const now=statsNow();addScreenElapsed(state.stats.activeScreenId,state.stats.activeScreenEnteredAt,now);state.stats.activeScreenEnteredAt=now;saveState(true)});
 }
 function toggleFocus(){
   document.body.classList.add('focus-mode');
@@ -587,6 +613,7 @@ function changeScreen(d){const screens=getScreens(),target=clamp(state.currentSc
 function focusScreenTitle(){setTimeout(()=>$('#screenTitle')?.focus(),0)}
 function updateJump(){const screens=getScreens();$('#screenJump').innerHTML=screens.map((s,i)=>`<option value="${i}" ${i===state.currentScreen?'selected':''}>${i+1}. ${esc(s.kicker)} — ${esc(s.title)}</option>`).join('')}
 function updateShell(){
+  markCompletedScreens();
   state.xp=calculateXP();
   const lvl=levelFromXP(state.xp),next=nextLevelTarget(lvl),prev=lvl===1?0:nextLevelTarget(lvl-1),toNext=clamp(Math.round((state.xp-prev)/(next-prev)*100),0,100);
   $('#xpNumber').textContent=state.xp+' XP';$('#levelPill').textContent='Level '+lvl;$('#levelFill').style.width=toNext+'%';
