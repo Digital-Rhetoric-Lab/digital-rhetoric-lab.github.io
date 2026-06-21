@@ -1,1224 +1,653 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data: blob:; connect-src 'none'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' data:; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none';">
-  <title>Digital Literacy Narrative Builder</title>
-  <style>
-    :root {
-      --bg: #f6f7fb;
-      --panel: #ffffff;
-      --text: #172033;
-      --muted: #627089;
-      --border: #dbe1ec;
-      --brand: #5267ff;
-      --brand-2: #7c3aed;
-      --brand-soft: #eef0ff;
-      --success: #138a52;
-      --warning: #b7791f;
-      --danger: #c2410c;
-      --shadow: 0 14px 40px rgba(23, 32, 51, 0.10);
-      --radius: 22px;
-      --rhetorical: #3b82f6;
-      --critical: #ef4444;
-      --cognitive: #10b981;
-      --technical: #8b5cf6;
-      --focus: 0 0 0 4px rgba(82, 103, 255, .18);
-    }
-
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(82, 103, 255, .14), transparent 36rem),
-        radial-gradient(circle at top right, rgba(124, 58, 237, .10), transparent 34rem),
-        var(--bg);
-      color: var(--text);
-      line-height: 1.5;
-    }
-
-    button, input, textarea, select { font: inherit; }
-    button { cursor: pointer; }
-    a { color: var(--brand); }
-
-    .app-shell {
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 28px 18px 72px;
-    }
-
-    .hero {
-      display: grid;
-      grid-template-columns: 1.3fr .7fr;
-      gap: 22px;
-      align-items: stretch;
-      margin-bottom: 22px;
-    }
-
-    .hero-card, .side-card, .section, .modal-card {
-      background: rgba(255, 255, 255, .88);
-      border: 1px solid rgba(219, 225, 236, .9);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-    }
-
-    .hero-card { padding: 34px; }
-    .hero-eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--brand);
-      background: var(--brand-soft);
-      padding: 7px 12px;
-      border-radius: 999px;
-      font-weight: 750;
-      font-size: .9rem;
-      margin-bottom: 16px;
-    }
-    h1 {
-      font-size: clamp(2rem, 5vw, 4rem);
-      line-height: 1;
-      margin: 0 0 14px;
-      letter-spacing: -.055em;
-    }
-    .hero-card p { max-width: 70ch; color: var(--muted); font-size: 1.05rem; }
-
-    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
-
-    .side-card { padding: 22px; display: flex; flex-direction: column; gap: 14px; }
-    .side-card h2 { margin: 0; font-size: 1.1rem; }
-    .progress-wrap { display: grid; gap: 11px; }
-    .progress-bar {
-      width: 100%; height: 12px; background: #e7ebf3; border-radius: 999px; overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%; width: 0%;
-      background: linear-gradient(90deg, var(--brand), var(--brand-2));
-      border-radius: inherit;
-      transition: width .4s ease;
-    }
-    .progress-label { color: var(--muted); font-size: .92rem; }
-    .step-pills { display: grid; gap: 8px; }
-    .step-pill {
-      display: flex; align-items: center; gap: 9px; padding: 10px 12px;
-      border-radius: 14px; background: #f4f6fb; color: var(--muted); font-size: .92rem;
-      border: 1px solid transparent;
-    }
-    .step-pill.done { color: var(--success); background: #ecfdf5; border-color: #bbf7d0; }
-    .step-pill.active { color: var(--brand); background: var(--brand-soft); border-color: #c7d2fe; font-weight: 750; }
-
-    .nav-tabs {
-      position: sticky;
-      top: 0;
-      z-index: 20;
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding: 10px;
-      margin: 0 0 18px;
-      background: rgba(246, 247, 251, .86);
-      backdrop-filter: blur(12px);
-      border-radius: 999px;
-      border: 1px solid rgba(219, 225, 236, .9);
-    }
-    .nav-tabs button {
-      border: 0; background: transparent; color: var(--muted); padding: 10px 14px;
-      border-radius: 999px; white-space: nowrap; font-weight: 700;
-    }
-    .nav-tabs button.active { background: var(--text); color: white; }
-
-    .section { padding: 26px; margin: 18px 0; }
-    .section-header {
-      display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px;
-    }
-    .section-header h2 { margin: 0; font-size: clamp(1.45rem, 3vw, 2.25rem); letter-spacing: -.035em; }
-    .section-header p, .prompt-block p { color: var(--muted); margin: 6px 0 0; }
-
-    .prompt-block {
-      background: linear-gradient(135deg, #f8fafc, #eef2ff);
-      border: 1px solid #dbeafe;
-      border-radius: 18px;
-      padding: 18px;
-      margin: 14px 0 20px;
-    }
-    .prompt-block strong { color: var(--brand); }
-
-    .btn {
-      border: 0;
-      background: var(--text);
-      color: white;
-      padding: 11px 16px;
-      border-radius: 999px;
-      font-weight: 800;
-      box-shadow: 0 8px 20px rgba(23, 32, 51, .12);
-      transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
-      display: inline-flex; align-items: center; gap: 8px; justify-content: center;
-    }
-    .btn:hover { transform: translateY(-1px); box-shadow: 0 14px 26px rgba(23, 32, 51, .16); }
-    .btn:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, summary:focus-visible { outline: none; box-shadow: var(--focus); }
-    .btn.secondary { background: white; color: var(--text); border: 1px solid var(--border); box-shadow: none; }
-    .btn.brand { background: linear-gradient(135deg, var(--brand), var(--brand-2)); }
-    .btn.small { padding: 8px 11px; font-size: .9rem; }
-    .btn.ghost { background: transparent; color: var(--muted); box-shadow: none; border: 1px dashed var(--border); }
-    .btn.danger { background: #fff7ed; color: var(--danger); border: 1px solid #fed7aa; box-shadow: none; }
-
-    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-    .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-
-    .flip-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
-    .flip-card { perspective: 1200px; min-height: 245px; }
-    .flip-inner {
-      position: relative; width: 100%; height: 100%; min-height: 245px;
-      transition: transform .6s cubic-bezier(.2,.8,.2,1);
-      transform-style: preserve-3d;
-    }
-    .flip-card.flipped .flip-inner, .flip-card:hover .flip-inner { transform: rotateY(180deg); }
-    .flip-face {
-      position: absolute; inset: 0;
-      border-radius: 20px;
-      padding: 22px;
-      backface-visibility: hidden;
-      display: flex; flex-direction: column; justify-content: space-between;
-      border: 1px solid var(--border);
-      overflow: hidden;
-    }
-    .flip-front { background: white; }
-    .flip-back { background: #111827; color: white; transform: rotateY(180deg); }
-    .flip-face::after {
-      content: ""; position: absolute; width: 190px; height: 190px; border-radius: 50%;
-      right: -72px; bottom: -72px; opacity: .14; background: currentColor;
-    }
-    .card-icon { font-size: 2.15rem; }
-    .flip-title { margin: 10px 0 4px; font-size: 1.4rem; letter-spacing: -.02em; }
-    .flip-front p, .flip-back p { margin: 0; color: inherit; opacity: .82; }
-    .flip-back .example { margin-top: 14px; padding: 12px; border-radius: 14px; background: rgba(255,255,255,.12); font-size: .95rem; }
-    .micro-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; position: relative; z-index: 2; }
-    .micro-actions button {
-      border: 1px solid rgba(255,255,255,.24); color: white; background: rgba(255,255,255,.10);
-      border-radius: 999px; padding: 7px 9px; font-size: .82rem;
-    }
-    .micro-actions button.selected { background: white; color: #111827; }
-
-    .quiz-card, .scenario-card, .moment-card, .analysis-card, .paragraph-card, .essay-card, .stat-card {
-      background: white; border: 1px solid var(--border); border-radius: 20px; padding: 18px;
-    }
-    .quiz-card h3, .moment-card h3, .analysis-card h3, .paragraph-card h3 { margin: 0 0 10px; }
-    .options { display: grid; gap: 9px; margin-top: 12px; }
-    .option {
-      display: flex; gap: 10px; align-items: flex-start; padding: 11px 12px; border: 1px solid var(--border);
-      border-radius: 14px; background: #fbfcff; cursor: pointer;
-    }
-    .option:hover { border-color: #c7d2fe; background: #f8f9ff; }
-    .option input { margin-top: 4px; }
-
-    label.field-label { display: block; font-weight: 800; margin: 12px 0 6px; color: #25304a; }
-    input[type="text"], textarea, select {
-      width: 100%; border: 1px solid var(--border); border-radius: 14px; background: #fff;
-      color: var(--text); padding: 12px 13px;
-    }
-    textarea { min-height: 105px; resize: vertical; }
-    .textarea-lg { min-height: 210px; }
-    .field-help { color: var(--muted); font-size: .88rem; margin-top: 4px; }
-
-    details.moment-details {
-      background: white; border: 1px solid var(--border); border-radius: 20px; padding: 0; overflow: hidden;
-    }
-    details.moment-details + details.moment-details { margin-top: 14px; }
-    details.moment-details summary {
-      list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
-      padding: 18px; font-weight: 900;
-    }
-    details.moment-details summary::-webkit-details-marker { display: none; }
-    .summary-meta { color: var(--muted); font-weight: 650; font-size: .9rem; }
-    .moment-body { padding: 0 18px 18px; border-top: 1px solid var(--border); }
-
-    .finder-grid { display: grid; grid-template-columns: 280px 1fr; gap: 16px; align-items: start; }
-    .scenario-list { display: grid; gap: 8px; }
-    .scenario-list button {
-      text-align: left; border: 1px solid var(--border); background: white; border-radius: 14px; padding: 11px;
-      color: var(--text); font-weight: 750;
-    }
-    .scenario-list button.active { border-color: #c7d2fe; background: var(--brand-soft); color: var(--brand); }
-
-    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
-    .tag {
-      display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 7px 10px;
-      font-size: .88rem; font-weight: 800; background: #f3f4f6; color: #374151; border: 1px solid transparent;
-    }
-    .tag.rhetorical { color: #1d4ed8; background: #eff6ff; border-color: #bfdbfe; }
-    .tag.critical { color: #b91c1c; background: #fef2f2; border-color: #fecaca; }
-    .tag.cognitive { color: #047857; background: #ecfdf5; border-color: #a7f3d0; }
-    .tag.technical { color: #6d28d9; background: #f5f3ff; border-color: #ddd6fe; }
-
-    .checkbox-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin: 10px 0 14px; }
-    .checkbox-chip {
-      display: flex; gap: 8px; align-items: flex-start; border: 1px solid var(--border); border-radius: 14px; padding: 10px; background: #fbfcff;
-      font-size: .93rem;
-    }
-
-    .starter-bank { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 12px; }
-    .starter-bank button { border: 1px solid var(--border); background: #fbfcff; color: var(--muted); border-radius: 999px; padding: 8px 10px; font-size: .9rem; }
-    .starter-bank button:hover { color: var(--brand); border-color: #c7d2fe; background: var(--brand-soft); }
-
-    .checklist { display: grid; gap: 8px; margin: 14px 0; }
-    .checklist label { display: flex; gap: 9px; align-items: center; background: #fbfcff; border: 1px solid var(--border); border-radius: 14px; padding: 10px; }
-
-    .timeline { position: relative; display: grid; gap: 14px; margin-top: 12px; }
-    .timeline::before { content: ""; position: absolute; left: 17px; top: 10px; bottom: 10px; width: 3px; background: #dbeafe; border-radius: 999px; }
-    .timeline-item { position: relative; padding-left: 48px; }
-    .timeline-dot { position: absolute; left: 7px; top: 14px; width: 23px; height: 23px; border-radius: 50%; background: linear-gradient(135deg, var(--brand), var(--brand-2)); border: 4px solid white; box-shadow: 0 4px 14px rgba(82,103,255,.25); }
-    .timeline-card { background: white; border: 1px solid var(--border); border-radius: 18px; padding: 15px; }
-
-    .toast {
-      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(120%);
-      background: #111827; color: white; border-radius: 999px; padding: 12px 16px; box-shadow: var(--shadow); z-index: 60;
-      transition: transform .25s ease; font-weight: 750; max-width: calc(100vw - 30px);
-    }
-    .toast.show { transform: translateX(-50%) translateY(0); }
-
-    .modal-backdrop {
-      position: fixed; inset: 0; background: rgba(15, 23, 42, .55); z-index: 50; display: none; align-items: center; justify-content: center; padding: 18px;
-    }
-    .modal-backdrop.show { display: flex; }
-    .modal-card { max-width: 760px; width: 100%; max-height: 88vh; overflow: auto; padding: 24px; }
-    .modal-head { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
-
-    .badge-row { display: flex; flex-wrap: wrap; gap: 8px; }
-    .badge { padding: 7px 10px; border-radius: 999px; background: #f4f6fb; color: var(--muted); font-weight: 800; font-size: .86rem; border: 1px solid var(--border); }
-    .badge.earned { background: #ecfdf5; color: var(--success); border-color: #bbf7d0; }
-
-    .empty-note { color: var(--muted); padding: 18px; text-align: center; border: 1px dashed var(--border); border-radius: 18px; background: #fbfcff; }
-
-    .app-footer { color: var(--muted); text-align: center; margin-top: 30px; font-size: .9rem; }
-
-    @media (max-width: 880px) {
-      .hero, .grid-2, .grid-3, .grid-4, .finder-grid { grid-template-columns: 1fr; }
-      .flip-grid { grid-template-columns: 1fr; }
-      .checkbox-grid { grid-template-columns: 1fr; }
-      .section { padding: 18px; }
-      .hero-card { padding: 24px; }
-    }
-
-    @media print {
-      body { background: white; }
-      .nav-tabs, .hero, .btn, .starter-bank, .scenario-list, .toast, .modal-backdrop { display: none !important; }
-      .section { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
-      textarea, input { border: 0; padding: 0; }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'none'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' data:; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'none'; form-action 'none';">
+<title>Digital Literacy Narrative Builder</title>
+<style>
+:root{
+  --bg:#f6f7fb;--panel:#fff;--text:#172033;--muted:#627089;--border:#dbe1ec;
+  --brand:#5267ff;--brand-2:#7c3aed;--brand-soft:#eef0ff;--success:#138a52;
+  --warning:#b7791f;--danger:#c2410c;--shadow:0 18px 50px rgba(23,32,51,.12);
+  --radius:24px;--focus:0 0 0 4px rgba(82,103,255,.22);
+  --rhetorical:#1d4ed8;--critical:#b91c1c;--cognitive:#047857;--technical:#6d28d9;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:radial-gradient(circle at top left,rgba(82,103,255,.16),transparent 34rem),
+  radial-gradient(circle at top right,rgba(124,58,237,.13),transparent 32rem),var(--bg);
+  color:var(--text);line-height:1.5;
+}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer;touch-action:manipulation}
+button:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+a{color:var(--brand)}
+.app-shell{max-width:1120px;margin:0 auto;padding:22px 18px 78px}
+.app-top{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;margin-bottom:16px}
+.brand-block,.stage,.status-card,.progress-shell{backdrop-filter:blur(10px)}
+.brand-block,.stage{background:rgba(255,255,255,.9);border:1px solid rgba(219,225,236,.95);box-shadow:var(--shadow)}
+.brand-block{border-radius:var(--radius);padding:22px}
+.eyebrow{display:inline-flex;gap:8px;color:var(--brand);background:var(--brand-soft);padding:7px 12px;border-radius:999px;font-weight:850;font-size:.88rem;margin-bottom:12px}
+h1{font-size:clamp(1.9rem,5vw,3.6rem);line-height:.98;margin:0;letter-spacing:-.055em}
+.subtitle{color:var(--muted);max-width:75ch;margin:12px 0 0}
+.status-card{min-width:260px;background:#111827;color:white;border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;display:grid;gap:10px}
+.xp-line{display:flex;justify-content:space-between;gap:12px;align-items:center;font-weight:900}
+.xp-number{font-size:1.8rem;letter-spacing:-.04em}
+.level-pill{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);padding:7px 10px;border-radius:999px;font-weight:850}
+.mini-muted{color:rgba(255,255,255,.74);font-size:.88rem}
+.progress-shell{background:rgba(255,255,255,.82);border:1px solid rgba(219,225,236,.9);border-radius:999px;padding:10px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;margin-bottom:14px}
+.progress-bar,.mini-meter{height:13px;background:#e7ebf3;border-radius:999px;overflow:hidden}
+.progress-fill,.mini-meter span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brand),var(--brand-2));transition:width .35s ease}
+.progress-text{color:var(--muted);font-weight:800;font-size:.9rem;white-space:nowrap}
+.jump-panel{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.jump-panel select{max-width:100%;border-radius:999px;padding:10px 14px;border:1px solid var(--border);background:white;color:var(--text);font-weight:800}
+.stage{border-radius:30px;min-height:580px;overflow:hidden}
+.screen-head{padding:28px 30px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
+.screen-kicker{color:var(--brand);font-size:.9rem;font-weight:950;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.screen-head h2{margin:0;font-size:clamp(1.6rem,3.8vw,2.7rem);line-height:1.05;letter-spacing:-.045em}
+.screen-head h2:focus{outline:none}
+.screen-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.screen-body{padding:26px 30px 30px}
+.screen-footer{border-top:1px solid var(--border);padding:16px 30px;display:flex;justify-content:space-between;gap:12px;align-items:center;background:#fbfcff}
+.footer-center{text-align:center;color:var(--muted);font-size:.9rem;font-weight:750}
+.completion-hint{display:block;margin-top:4px;font-weight:650;color:#7b8497}
+.btn{border:0;background:var(--text);color:white;padding:11px 16px;border-radius:999px;font-weight:900;box-shadow:0 8px 20px rgba(23,32,51,.14);display:inline-flex;align-items:center;gap:8px;justify-content:center;min-height:42px;text-decoration:none}
+.btn:hover:not(:disabled){transform:translateY(-1px)}
+.btn:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,.choice-card:focus-visible,.step-dot:focus-visible{outline:none;box-shadow:var(--focus)}
+.btn.secondary{background:white;color:var(--text);border:1px solid var(--border);box-shadow:none}
+.btn.brand{background:linear-gradient(135deg,var(--brand),var(--brand-2))}
+.btn.small{padding:8px 12px;min-height:36px;font-size:.9rem}
+.btn.danger{background:#fff7ed;color:var(--danger);border:1px solid #fed7aa;box-shadow:none}
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.card,.choice-card,.writing-card,.info-card,.example-card{background:white;border:1px solid var(--border);border-radius:22px;padding:18px}
+.choice-card{cursor:pointer;text-align:left;width:100%;color:var(--text)}
+.choice-card:hover,.choice-card.selected{border-color:#c7d2fe;background:#f8f9ff;box-shadow:0 12px 26px rgba(82,103,255,.1)}
+h3{margin:0 0 8px;font-size:1.18rem}
+p{margin-top:0}
+.card p,.choice-card p,.writing-card p,.info-card p,.example-card p{color:var(--muted)}
+.big-icon{font-size:2.2rem;margin-bottom:8px}
+.prompt-block{background:linear-gradient(135deg,#f8fafc,#eef2ff);border:1px solid #dbeafe;border-radius:20px;padding:18px;margin-bottom:16px}
+.prompt-block strong{color:var(--brand)}
+.field-label{display:block;font-weight:900;color:#25304a;margin:14px 0 7px}
+input[type=text],textarea,select{width:100%;border:1px solid var(--border);border-radius:16px;background:#fff;color:var(--text);padding:13px 14px}
+textarea{min-height:160px;resize:vertical}.large{min-height:280px}
+.field-help{color:var(--muted);font-size:.9rem;margin-top:6px}
+.step-strip{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0 0}
+.step-dot{width:34px;height:34px;border-radius:999px;display:grid;place-items:center;border:1px solid var(--border);color:var(--muted);background:#f4f6fb;font-weight:900;font-size:.88rem;padding:0}
+.step-dot.done{color:var(--success);background:#ecfdf5;border-color:#bbf7d0}
+.step-dot.active{color:white;background:linear-gradient(135deg,var(--brand),var(--brand-2));border-color:transparent}
+.tags,.starter-bank,.badge-row{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.tag,.badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:7px 10px;font-size:.88rem;font-weight:900;background:#f3f4f6;color:#374151;border:1px solid transparent}
+.tag.rhetorical{color:#1d4ed8;background:#eff6ff;border-color:#bfdbfe}.tag.critical{color:#b91c1c;background:#fef2f2;border-color:#fecaca}
+.tag.cognitive{color:#047857;background:#ecfdf5;border-color:#a7f3d0}.tag.technical{color:#6d28d9;background:#f5f3ff;border-color:#ddd6fe}
+.badge{color:var(--muted);border-color:var(--border)}.badge.earned{background:#ecfdf5;color:var(--success);border-color:#bbf7d0}
+.option-list,.checklist{display:grid;gap:10px;margin-top:12px}
+.option,.checklist label{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid var(--border);border-radius:16px;background:#fbfcff;cursor:pointer}
+.option:hover,.checklist label:hover{border-color:#c7d2fe;background:#f8f9ff}
+.option input,.checklist input{margin-top:4px}
+.draft-preview{white-space:pre-wrap;background:#111827;color:white;border-radius:20px;padding:18px;min-height:180px;overflow:auto}
+.placeholder{color:rgba(255,255,255,.62)}
+.quality-list{margin:10px 0 0;padding-left:20px;color:var(--muted)}
+.quality-list li.good{color:var(--success);font-weight:800}.quality-list li.warn{color:var(--warning);font-weight:800}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(140%);background:#111827;color:white;border-radius:999px;padding:12px 16px;box-shadow:var(--shadow);z-index:60;transition:transform .25s ease;font-weight:850;max-width:calc(100vw - 30px)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.58);z-index:50;display:none;align-items:center;justify-content:center;padding:18px}
+.modal-backdrop.show{display:flex}.modal-card{max-width:850px;width:100%;max-height:88vh;overflow:auto;background:white;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px}
+.modal-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:12px}.modal-head h2{margin:0}
+.empty-note{color:var(--muted);padding:18px;text-align:center;border:1px dashed var(--border);border-radius:18px;background:#fbfcff}
+.app-footer{text-align:center;color:var(--muted);font-size:.9rem;margin-top:28px}
+.app-top,.progress-shell,.jump-panel,.app-footer,.focus-exit{display:none!important}
+body.focus-mode .app-shell{max-width:900px;padding-top:18px}
+.focus-exit{display:none;position:fixed;right:18px;top:18px;z-index:70}
+.focus-exit{display:none!important}
+.manual-copy{width:100%;min-height:240px}
+@media(max-width:900px){.app-top,.grid-2,.grid-3{grid-template-columns:1fr}.status-card{min-width:0}.progress-shell{grid-template-columns:1fr;border-radius:22px}.progress-text{white-space:normal}.screen-head,.screen-footer{flex-direction:column;align-items:stretch}.screen-actions{justify-content:flex-start}.screen-body,.screen-head,.screen-footer{padding-left:18px;padding-right:18px}.stage{border-radius:24px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation:none!important}}
+@media print{body{background:white}.app-top,.progress-shell,.jump-panel,.screen-footer,.btn,.toast,.modal-backdrop,.app-footer,.focus-exit{display:none!important}.app-shell{max-width:none;padding:0}.stage{box-shadow:none;border:0;min-height:auto}.screen-head{border-bottom:1px solid #ddd}}
+</style>
 </head>
-<body>
-  <div class="app-shell">
-    <header class="hero">
-      <div class="hero-card">
-        <div class="hero-eyebrow">✦ Module 1 · Digital Literacy Narrative</div>
-        <h1>Turn digital moments into a story of learning.</h1>
-        <p>This no-network, single-file app helps students explore four dimensions of digital literacy, find three meaningful experiences, analyze them, and build a complete narrative essay draft.</p>
-        <div class="hero-actions">
-          <button class="btn brand" data-scroll="#concepts">Start with the cards</button>
-          <button class="btn secondary" data-scroll="#finder">Find my moments</button>
-          <button class="btn secondary" id="printBtn">Print / Save PDF</button>
-        </div>
-      </div>
-      <aside class="side-card" aria-label="Progress overview">
-        <h2>Your progress</h2>
-        <div class="progress-wrap">
-          <div class="progress-bar" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
-          <div class="progress-label" id="progressLabel">0% complete · Start by exploring the concepts.</div>
-        </div>
-        <div class="step-pills" id="stepPills"></div>
-        <div>
-          <h2>Badges</h2>
-          <div class="badge-row" id="badgeRow"></div>
-        </div>
-      </aside>
-    </header>
+<body class="focus-mode">
 
-    <nav class="nav-tabs" aria-label="Module navigation">
-      <button data-scroll="#concepts" class="active">Concepts</button>
-      <button data-scroll="#profile">Profile</button>
-      <button data-scroll="#finder">Moment Finder</button>
-      <button data-scroll="#moments">Step 1</button>
-      <button data-scroll="#analysis">Step 2</button>
-      <button data-scroll="#paragraphs">Step 3</button>
-      <button data-scroll="#essay">Step 4</button>
-      <button data-scroll="#review">Review</button>
-    </nav>
 
-    <main>
-      <section class="section" id="concepts">
-        <div class="section-header">
-          <div>
-            <h2>Explore the four dimensions</h2>
-            <p>Hover or click a card to flip it. Then mark whether the concept feels familiar.</p>
-          </div>
-          <button class="btn secondary small" id="resetCardsBtn">Reset card reactions</button>
-        </div>
-        <div class="flip-grid" id="flipGrid"></div>
-        <div style="margin-top:18px; display:flex; gap:10px; flex-wrap:wrap;">
-          <button class="btn brand" data-scroll="#moments">Apply this concept to your own experience</button>
-          <button class="btn secondary" data-scroll="#profile">Take a 60-second profile quiz</button>
-        </div>
-      </section>
-
-      <section class="section" id="profile">
-        <div class="section-header">
-          <div>
-            <h2>Quick digital literacy profile</h2>
-            <p>Answer a few low-stakes questions. Your result can suggest what to watch for in your own stories.</p>
-          </div>
-          <button class="btn secondary small" id="resetQuizBtn">Reset quiz</button>
-        </div>
-        <div class="grid-2" id="quizGrid"></div>
-        <div class="prompt-block" id="profileResult">
-          <strong>Your profile will appear here.</strong>
-          <p>Choose options above to see which literacy dimensions may be strongest in your experiences.</p>
-        </div>
-      </section>
-
-      <section class="section" id="finder">
-        <div class="section-header">
-          <div>
-            <h2>Moment Finder</h2>
-            <p>If you are stuck, choose a scenario. The app will suggest concrete angles and questions.</p>
-          </div>
-        </div>
-        <div class="finder-grid">
-          <div class="scenario-list" id="scenarioList"></div>
-          <div class="scenario-card" id="scenarioOutput">
-            <h3>Choose a scenario to begin</h3>
-            <p class="field-help">Look for a moment when something online confused, surprised, helped, frustrated, or taught you.</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="section" id="moments">
-        <div class="section-header">
-          <div>
-            <h2>Step 1: Idea generation</h2>
-            <p>Find three meaningful moments from reading and writing in digital environments.</p>
-          </div>
-          <button class="btn secondary small" id="expandMomentsBtn">Expand all</button>
-        </div>
-        <div class="prompt-block">
-          <strong>Prompt:</strong>
-          <p>Reflect on your experiences reading and writing in digital environments. Identify three moments where you learned something important about how digital networks function and how you engage with them. As you describe each moment, include specific details so your reader can clearly see what happened.</p>
-        </div>
-        <div id="momentCards"></div>
-      </section>
-
-      <section class="section" id="analysis">
-        <div class="section-header">
-          <div>
-            <h2>Step 2: Connect to digital literacy dimensions</h2>
-            <p>Tag each moment and explain how it demonstrates one or more dimensions of digital literacy.</p>
-          </div>
-        </div>
-        <div class="prompt-block">
-          <strong>Prompt:</strong>
-          <p>How does this moment demonstrate one or more dimensions of digital literacy?</p>
-        </div>
-        <div class="grid-3" id="analysisCards"></div>
-      </section>
-
-      <section class="section" id="paragraphs">
-        <div class="section-header">
-          <div>
-            <h2>Step 3: Narrative development</h2>
-            <p>Expand each moment into a detailed narrative paragraph that shows both what you did and what you learned.</p>
-          </div>
-        </div>
-        <div class="prompt-block">
-          <strong>Prompt:</strong>
-          <p>Expand this moment to a detailed narrative paragraph that shows both what you wrote/read and what you learned.</p>
-        </div>
-        <div class="grid-3" id="paragraphCards"></div>
-      </section>
-
-      <section class="section" id="essay">
-        <div class="section-header">
-          <div>
-            <h2>Step 4: Full digital literacy narrative</h2>
-            <p>Bring your three moments together into a cohesive essay draft.</p>
-          </div>
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button class="btn secondary small" id="buildOutlineBtn">Build outline from my work</button>
-            <button class="btn secondary small" id="copyEssayBtn">Copy essay</button>
-          </div>
-        </div>
-        <div class="prompt-block">
-          <strong>Prompt:</strong>
-          <p>Bring your three moments together into a cohesive digital literacy narrative. Your essay should show how your digital literacy has developed across different situations.</p>
-        </div>
-        <div class="grid-2">
-          <div class="essay-card">
-            <h3>Connection Finder</h3>
-            <p class="field-help">What pattern do you notice across your three moments?</p>
-            <label class="field-label" for="patternSelect">Pattern</label>
-            <select id="patternSelect">
-              <option value="">Choose a pattern...</option>
-              <option>I became more confident using digital tools.</option>
-              <option>I became more careful about online information.</option>
-              <option>I learned that different platforms require different writing choices.</option>
-              <option>I noticed that digital spaces are shaped by power, access, or bias.</option>
-              <option>I learned mostly through trial and error.</option>
-              <option>I moved from confusion to confidence.</option>
-              <option>I became more aware of audience.</option>
-            </select>
-            <label class="field-label" for="relationshipInput">Introduction note: What is your relationship with digital networks?</label>
-            <textarea id="relationshipInput" data-key="essay.relationship" placeholder="Digital networks matter to me because..."></textarea>
-            <label class="field-label" for="conclusionInput">Conclusion note: How has your understanding changed?</label>
-            <textarea id="conclusionInput" data-key="essay.conclusion" placeholder="Together, these moments show..."></textarea>
-          </div>
-          <div class="essay-card">
-            <h3>Literacy map</h3>
-            <div id="literacyStats" class="grid-2"></div>
-            <h3 style="margin-top:18px;">Timeline</h3>
-            <div class="timeline" id="timeline"></div>
-          </div>
-        </div>
-        <label class="field-label" for="essayDraft">Essay draft</label>
-        <div class="starter-bank" data-target="essayDraft">
-          <button type="button" data-starter="Digital networks have shaped how I read, write, and learn because ">Intro starter</button>
-          <button type="button" data-starter="Across these three moments, I can see that my digital literacy developed from ">Connection starter</button>
-          <button type="button" data-starter="This matters because digital literacy is not only about using tools; it is also about ">Conclusion starter</button>
-        </div>
-        <textarea id="essayDraft" class="textarea-lg" data-key="essay.draft" placeholder="Build your essay here, or use the outline builder."></textarea>
-      </section>
-
-      <section class="section" id="review">
-        <div class="section-header">
-          <div>
-            <h2>Review, export, and next steps</h2>
-            <p>Use the checklist to revise, then export your work as a text file or print/save as PDF.</p>
-          </div>
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button class="btn brand small" id="downloadBtn">Download .txt</button>
-            <button class="btn secondary small" id="clearBtn">Clear all saved work</button>
-          </div>
-        </div>
-        <div class="grid-2">
-          <div class="essay-card">
-            <h3>Final checklist</h3>
-            <div class="checklist" id="finalChecklist"></div>
-          </div>
-          <div class="essay-card">
-            <h3>Peer review prompts</h3>
-            <div class="starter-bank" data-target="peerNotes">
-              <button type="button" data-starter="The most vivid part of this narrative is ">Vivid part</button>
-              <button type="button" data-starter="The strongest literacy dimension seems to be ">Strongest dimension</button>
-              <button type="button" data-starter="One place to add more specific detail is ">More detail</button>
-              <button type="button" data-starter="The writer's learning is important because ">Learning</button>
-            </div>
-            <label class="field-label" for="peerNotes">Peer or self-review notes</label>
-            <textarea id="peerNotes" data-key="review.peerNotes" placeholder="Use this space for comments, revision goals, or peer feedback."></textarea>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer class="app-footer">Single-file app · Works offline · Stores drafts locally in this browser</footer>
-  </div>
-
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal-card">
-      <div class="modal-head">
-        <div>
-          <h2 id="modalTitle">Example</h2>
-          <p id="modalSubtitle" class="field-help"></p>
-        </div>
-        <button class="btn secondary small" id="modalCloseBtn">Close</button>
-      </div>
-      <div id="modalContent"></div>
+<div class="app-shell">
+  <header class="app-top">
+    <div class="brand-block">
+      <div class="eyebrow">✦ Module 1 · Digital Literacy Narrative</div>
+      <h1>Build your narrative one focused step at a time.</h1>
+      <p class="subtitle">Choose a learning path, earn experience points, use examples and hints, and draft a digital literacy narrative without network requests or external dependencies.</p>
     </div>
+    <aside class="status-card" aria-label="Experience and save status">
+      <div class="xp-line">
+        <div><div class="mini-muted">Experience</div><div class="xp-number" id="xpNumber">0 XP</div></div>
+        <div class="level-pill" id="levelPill">Level 1</div>
+      </div>
+      <div class="mini-meter" aria-hidden="true"><span id="levelFill"></span></div>
+      <div class="mini-muted" id="saveStatus">Not saved yet</div>
+      <div class="badge-row" id="badgeRow"></div>
+    </aside>
+  </header>
+
+  <section class="progress-shell" aria-label="Progress overview">
+    <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-text" id="progressText">0% complete</div>
+  </section>
+
+  <section class="jump-panel" aria-label="Quick navigation">
+    <select id="screenJump" aria-label="Jump to screen"></select>
+    <button class="btn secondary small" id="focusBtn" type="button">Focus mode</button>
+    <button class="btn secondary small" id="uxBtn" type="button">Help</button>
+    <button class="btn secondary small" id="printBtn" type="button">Print this screen</button>
+  </section>
+
+  <main class="stage" id="stage" tabindex="-1"></main>
+
+  <footer class="app-footer">Single-file app · Works offline · Stores drafts locally in this browser only · No dependencies · No network requests</footer>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalSubtitle">
+  <div class="modal-card" role="document">
+    <div class="modal-head">
+      <div>
+        <h2 id="modalTitle">Modal</h2>
+        <p id="modalSubtitle" class="field-help"></p>
+      </div>
+      <button class="btn secondary small" id="modalCloseBtn" type="button">Close</button>
+    </div>
+    <div id="modalContent"></div>
   </div>
+</div>
 
-  <script>
-    (function () {
-      'use strict';
+<script>
+(function(){
+'use strict';
 
-      const STORAGE_KEY = 'digitalLiteracyNarrativeBuilder.v1';
-      const state = loadState();
+const STORAGE_KEY='digitalLiteracyNarrativeBuilder.v5.sentenceFrames';
 
-      const literacies = [
-        {
-          id: 'rhetorical', icon: '🗣️', title: 'Rhetorical Digital Literacy', short: 'Audience + purpose + platform',
-          definition: 'Respond to rhetorical situations using multimodal communication.',
-          example: 'Posting differently on TikTok than you would in an email to a professor.',
-          question: 'Did you adapt to an audience or platform?', badge: 'Audience Adapter'
-        },
-        {
-          id: 'critical', icon: '⚖️', title: 'Critical Digital Literacy', short: 'Power + bias + access',
-          definition: 'Recognize social, political, and cultural power dynamics.',
-          example: 'Noticing that an algorithm or search result makes some voices easier to find than others.',
-          question: 'Did you notice bias, power, access, or limitations?', badge: 'Bias Detector'
-        },
-        {
-          id: 'cognitive', icon: '🧠', title: 'Cognitive Digital Literacy', short: 'Searching + evaluating',
-          definition: 'Search for and evaluate online information.',
-          example: 'Comparing multiple sources before trusting information you found online.',
-          question: 'Did you evaluate information? How?', badge: 'Source Evaluator'
-        },
-        {
-          id: 'technical', icon: '⚙️', title: 'Technical Digital Literacy', short: 'Tools + systems + features',
-          definition: 'Utilize technological tools effectively.',
-          example: 'Learning how to use privacy settings, collaborative editing tools, or platform features.',
-          question: 'Did you learn how a tool or system actually works?', badge: 'Tool Explorer'
-        }
-      ];
+const literacies=[
+  {id:'rhetorical',icon:'🗣️',title:'Rhetorical Digital Literacy',short:'Audience + purpose + platform + mode',definition:'Rhetorical digital literacy is the ability to understand how digital communication changes across audiences, purposes, platforms, and contexts. It also includes the ability to interpret and use different modes, such as words, images, sound, layout, movement, and gesture, to create effective digital texts.',example:'Imagine you want to invite people to a campus event. You could send a formal email, post an Instagram story, write in a group chat, design a flyer, or make a slide announcement. The basic information is the same: what the event is, when it happens, where it is, and why people should attend. But the message should not look or sound the same in every space. This is a moment of rhetorical digital literacy because the effectiveness of the message depends on audience, purpose, platform, and mode. Rhetorical digital literacy helps you see digital texts as designed.',details:['A formal email may need a clear subject line, appropriate greeting, complete sentences, respectful tone, necessary details, and professional sign-off.','An Instagram story may need a strong image, appealing caption, short wording, visual emphasis, stickers, links, or tags.','A group chat may need a casual tone, brief message, direct call to action, and awareness of the group relationship.','A flyer may need layout, contrast, readable font, visual hierarchy, visible location/time, and quick readability.','A presentation slide may need fewer words, clear visual structure, and support for what the speaker will say aloud.'],question:'Did you adapt to an audience, purpose, platform, genre, tone, or mode?',badge:'Audience Adapter'},
+  {id:'cognitive',icon:'🧠',title:'Cognitive Digital Literacy',short:'Choosing + evaluating + using information',definition:'Cognitive digital literacy is the ability to choose, evaluate, and use digital tools, programs, functions, online information, and resources to solve a problem, answer a question, or support your learning.',example:'You’re starting a paper about social media and college students’ mental health. When you search online, you may find many possible sources and tools: YouTube videos, personal blogs, news articles, Wikipedia pages, peer-reviewed journal articles, library databases, citation tools, and AI-generated summaries. Cognitive digital literacy helps you decide what kind of information you need, which source or tool fits your purpose, and how reliable it is.',details:['A YouTube video or short social media video may help you see how people explain or discuss the issue publicly, but it may not provide reliable evidence or full context.','A personal blog may offer one person’s experience or opinion, but one experience doesn’t prove a larger pattern.','A news article may help you understand a current event or public debate, but you should check who published it, when it was published, and what evidence it uses.','A peer-reviewed journal article may provide research-based evidence, but you still need to understand the study’s question, method, findings, and limitations.','A citation tool may help you save and organize sources, but you still need to check whether the citation is complete and correctly formatted.','An AI-generated summary may help you summarize and clarify ideas, but you need to verify its claims with reliable sources and avoid treating it as evidence by itself.'],question:'Did you choose, evaluate, compare, verify, or use digital information or tools to solve a problem?',badge:'Source Evaluator'},
+  {id:'critical',icon:'⚖️',title:'Critical Digital Literacy',short:'Power + bias + access + ideology',definition:'Critical digital literacy is the ability to recognize how social, political, cultural, and ideological power shapes digital tools, platforms, products, and environments. It helps us notice bias, unequal access, misinformation, disinformation, and the ways some voices, designs, or perspectives are privileged over others.',example:'You open YouTube, Instagram, TikTok, or another platform to watch one video or read one post. Soon, the platform keeps recommending similar content. Critical digital literacy helps you see that the platform is not simply showing you “what is out there.” What appears on your screen has already been filtered, ranked, and promoted by systems designed by people and institutions. These systems are shaped by profit motives, advertising, platform policies, cultural assumptions, political pressures, ideological interests, and decisions about what kind of content should become more visible. Your feed is not neutral. It can make some voices, perspectives, identities, products, lifestyles, or beliefs seem more visible, normal, credible, or important than others. It can also help misinformation and disinformation spread quickly when misleading content is emotional, dramatic, or easy to share.',details:['A recommendation algorithm may help you find content related to your interests, but it may also keep showing similar viewpoints until one perspective or political viewpoint starts to feel like the dominant or “common sense” view.','A student watches one fitness, beauty, or productivity video, and the feed begins to promote more content about “ideal” bodies, lifestyles, routines, or success.','A search result shows sponsored or highly ranked sources first, while smaller community voices, local perspectives, or non-English sources are harder to find.','A social media post may help people share personal experiences, but it may also spread misleading health, political, or social claims, even though it does not provide reliable evidence.','A generative AI tool may give an answer that sounds neutral, but it may also leave out certain cultures, communities, or perspectives.','A platform reaction feature may make it easy to like, share, repost, or react quickly, but it may also make it harder to pause, verify, compare sources, or understand context.'],question:'Did you notice bias, power, access, misinformation, representation, privacy, or unequal visibility?',badge:'Bias Detector'},
+  {id:'technical',icon:'⚙️',title:'Functional Digital Literacy',short:'Operating tools for academic purposes',definition:'Functional digital literacy is the ability to operate digital devices and use software to realize functional purposes, especially academic purposes such as for completing writing assignments.',example:'Functional digital literacy includes the practical ability to use devices, software, file formats, comments, version history, exports, privacy settings, accessibility tools, templates, upload portals, and formatting features so academic work reaches the right audience in the right form.',details:['Use comments, version history, shared-document permissions, and file naming to manage collaborative writing.','Use export options, file formats, upload portals, templates, and formatting features to complete writing assignments.','Use privacy, notification, accessibility, sharing, location, account, security, and recommendation settings to understand what a tool controls.'],question:'Did you operate a device, setting, software feature, format, or system to complete an academic task?',badge:'Tool Explorer'}
+];
+const quiz=[
+  ['q1','When you encounter unfamiliar information online, what do you usually do first?',[['cognitive','Check who published it and compare it with other sources.'],['critical','Ask who benefits from this version of the information.'],['technical','Look for platform clues like labels, timestamps, or metadata.'],['rhetorical','Think about the intended audience and purpose.']]],
+  ['q2','Which experience feels most familiar?',[['rhetorical','Changing your tone for a different audience.'],['technical','Learning a new digital feature through trial and error.'],['critical','Realizing a platform ranked or amplified certain voices.'],['cognitive','Using search terms and source checks to solve a problem.']]],
+  ['q3','What kind of digital challenge has taught you the most?',[['technical','A tool did not work the way I expected.'],['cognitive','I had to decide what information to trust.'],['rhetorical','I had to communicate clearly in a specific digital space.'],['critical','I noticed rules, access, bias, or power shaping the space.']]],
+  ['q4','When writing online, what do you pay attention to most?',[['rhetorical','Tone, audience, genre, images, and platform expectations.'],['critical','Who is included, excluded, or represented unfairly.'],['cognitive','Whether my claims are accurate and supported.'],['technical','How the tool formats, publishes, or distributes my writing.']]]
+];
 
-      const quiz = [
-        { id: 'q1', q: 'When you encounter unfamiliar information online, what do you usually do first?',
-          options: [
-            ['cognitive', 'Check who published it and compare it with other sources.'],
-            ['critical', 'Ask who benefits from this version of the information.'],
-            ['technical', 'Look for platform clues like labels, settings, or metadata.'],
-            ['rhetorical', 'Think about the intended audience and purpose.']
-          ]
-        },
-        { id: 'q2', q: 'Which experience feels most familiar?',
-          options: [
-            ['rhetorical', 'Changing your tone because you were writing for a different audience.'],
-            ['technical', 'Learning a new feature through trial and error.'],
-            ['critical', 'Realizing a platform left out, ranked, or amplified certain voices.'],
-            ['cognitive', 'Using search terms and source checks to solve a problem.']
-          ]
-        },
-        { id: 'q3', q: 'What kind of digital challenge has taught you the most?',
-          options: [
-            ['technical', 'A tool did not work the way I expected.'],
-            ['cognitive', 'I had to decide what information to trust.'],
-            ['rhetorical', 'I had to communicate clearly in a specific digital space.'],
-            ['critical', 'I noticed rules, access, bias, or power shaping the space.']
-          ]
-        },
-        { id: 'q4', q: 'When writing online, what do you pay attention to most?',
-          options: [
-            ['rhetorical', 'Tone, audience, genre, images, and platform expectations.'],
-            ['critical', 'Who is included, excluded, or represented unfairly.'],
-            ['cognitive', 'Whether my claims are accurate and supported.'],
-            ['technical', 'How the tool formats, publishes, or distributes my writing.']
-          ]
-        }
-      ];
+const scenarios=[
+  {id:'search',title:'Online search',icon:'🔎',sample:'You searched online and had to decide which information, source, tool, or summary was useful and trustworthy.',questions:['What question or problem were you trying to answer?','What search terms, filters, databases, or tools did you try?','What result looked useful at first, and what made you check it?','How did you decide what to use, save, cite, or ignore?'],suggested:['cognitive','critical']},
+  {id:'communication',title:'Digital communication',icon:'💬',sample:'You wrote a message, email, caption, post, announcement, or comment and adjusted it for a specific audience, purpose, or platform.',questions:['Who did you imagine would read or hear it?','What did the platform or situation expect from you?','What tone, length, wording, image, link, or call to action did you choose?','How did you know whether the message worked?'],suggested:['rhetorical','technical']},
+  {id:'design',title:'Multimodal design',icon:'🎨',sample:'You made or revised a digital text that used more than words, such as images, layout, sound, video, slides, captions, movement, or links.',questions:['What modes did you use besides words?','How did layout, image, sound, timing, or movement affect the message?','What did you revise so the design would be clearer or more persuasive?','How did audience and platform shape your design choices?'],suggested:['rhetorical','technical']},
+  {id:'access',title:'Access and digital inequality',icon:'🌐',sample:'You noticed that access, language, device quality, disability, cost, location, platform rules, or institutional resources shaped who could participate.',questions:['Who had easier or harder access in this situation?','What barrier, limitation, or unequal resource did you notice?','How did the digital environment include or exclude people?','What did this teach you about participation in digital spaces?'],suggested:['critical','technical']},
+  {id:'community',title:'Online communities',icon:'👥',sample:'You participated in a group chat, class forum, Discord, comment thread, fandom, gaming space, or another online community with its own norms.',questions:['What community norms or expectations did you notice?','How did people signal belonging, disagreement, expertise, humor, or support?','What did you change about your participation because of the group?','What did the community make more visible, acceptable, or difficult to say?'],suggested:['rhetorical','critical']},
+  {id:'privacy',title:'Privacy, settings, and control',icon:'🔐',sample:'You changed or questioned privacy, notification, sharing, location, account, accessibility, security, or recommendation settings and thought about what they controlled.',questions:['What specific setting or control did you discover?','What information, access, audience, risk, or limitation did it affect?','How did you learn what the setting actually controlled?','How did it change your behavior or awareness?'],suggested:['technical','critical']},
+  {id:'collab',title:'Collaborative writing',icon:'🤝',sample:'You used comments, shared documents, version history, suggestions, group slides, peer feedback, or task assignments to write with others online.',questions:['What were you trying to produce together?','What tool features shaped the collaboration?','How did comments, edits, permissions, or version history affect the writing process?','What did you learn about writing with other people in a digital space?'],suggested:['rhetorical','technical','critical']}
+];
+const guidedFields=[
+  ['when','When did this happen?','Name the class, semester, age, event, or situation.','This digital literacy moment happened ',' .'],
+  ['where','Where did it happen digitally?','Name the app, website, platform, device, or digital space.','The digital space, platform, device, or tool involved was ',' .'],
+  ['trying','What were you trying to read, write, make, find, or submit?','Describe the goal.','My goal was to ',' .'],
+  ['who','Who was involved or imagined as the audience?','Classmates, teacher, friends, followers, family, public audience, or yourself.','The audience for my digital text or activity was ',' .'],
+  ['challenge','What confused, surprised, frustrated, or challenged you?','Name the tension that makes this a story.','The challenge was that ',' .'],
+  ['response','What did you do next?','Clicks, searches, edits, questions, comparisons, settings, drafts, or decisions.','To respond, I ',' .'],
+  ['helped','Who or what helped you learn?','People, tutorials, platform clues, examples, feedback, errors, or trial and error.','I learned by using help from ',' .'],
+  ['learned','What did you learn about digital networks or your digital habits?','State the lesson clearly.','This experience taught me that ',' .']
+];
+const analysisQuestions=[
+  ['did','What did you do in this moment?','Be concrete: searched, posted, edited, compared, adjusted, clicked, checked, revised.'],
+  ['look','What did it look like or sound like?','Show screen details, wording, notifications, layout, or audience reaction.'],
+  ['dimension','Which digital literacy dimension fits best, and why?','Use the tags, then explain the connection.'],
+  ['learn','Why did this moment matter to your development?','Explain the shift in thinking, confidence, awareness, or strategy.']
+];
 
-      const scenarios = [
-        {
-          id: 'research', title: 'Online research', icon: '🔎',
-          sample: 'You searched for information for a class, project, or personal question and had to decide what to trust.',
-          questions: ['What exact search terms did you try?', 'What result looked trustworthy at first?', 'What made you pause or compare sources?', 'How did you decide what to use?'],
-          suggested: ['Cognitive', 'Critical']
-        },
-        {
-          id: 'social', title: 'Social media post or comment', icon: '📱',
-          sample: 'You changed wording, images, hashtags, or tone because of the platform or audience.',
-          questions: ['Who did you imagine would see it?', 'What did the platform encourage you to include?', 'What did you edit before posting?', 'What response did you expect or receive?'],
-          suggested: ['Rhetorical', 'Critical']
-        },
-        {
-          id: 'tool', title: 'Learning a digital tool', icon: '🛠️',
-          sample: 'You learned a feature in Teams, Canvas, Google Docs, video editing, AI tools, spreadsheets, or another system.',
-          questions: ['What were you trying to make or submit?', 'What feature was confusing?', 'What did you click, search, watch, or ask?', 'What can you do now that you could not do before?'],
-          suggested: ['Technical', 'Cognitive']
-        },
-        {
-          id: 'misinfo', title: 'Misinformation or bias', icon: '⚠️',
-          sample: 'You noticed a claim, trend, recommendation, ad, or search result that seemed biased, misleading, or incomplete.',
-          questions: ['What made it seem questionable?', 'Whose perspective was missing?', 'How did the platform shape what you saw?', 'What did you learn about digital networks?'],
-          suggested: ['Critical', 'Cognitive']
-        },
-        {
-          id: 'collab', title: 'Collaborative writing', icon: '🤝',
-          sample: 'You wrote with others in a shared document, chat, discussion board, or project platform.',
-          questions: ['Who was involved?', 'How did comments, edits, or notifications shape the writing?', 'How did you adjust your communication?', 'What tool features helped or got in the way?'],
-          suggested: ['Rhetorical', 'Technical']
-        },
-        {
-          id: 'privacy', title: 'Privacy or settings', icon: '🔐',
-          sample: 'You changed privacy, notification, sharing, location, account, or security settings.',
-          questions: ['What setting did you discover?', 'What risk or limitation did you notice?', 'How did you learn what the setting controlled?', 'How did it change your behavior?'],
-          suggested: ['Technical', 'Critical']
-        }
-      ];
+const paragraphChecklist=[
+  'Context: when, where, and who',
+  'Digital activity: what you read, wrote, searched, clicked, made, or changed',
+  'Challenge: what was confusing, surprising, difficult, or important',
+  'Process: how you figured it out or learned',
+  'Specific digital detail',
+  'Reflection: what you learned and why it matters'
+];
 
-      const guidedFields = [
-        ['when', 'When did this happen?', 'time/context'],
-        ['where', 'Where were you?', 'platform, space, environment'],
-        ['trying', 'What were you trying to do?', 'goal or task'],
-        ['who', 'Who were you interacting with?', 'if anyone'],
-        ['approach', 'How did you approach it?', 'first steps'],
-        ['challenge', 'What challenge or confusion did you face?', 'problem, surprise, or obstacle'],
-        ['response', 'How did you respond to that challenge?', 'steps you took'],
-        ['figured', 'How did you figure it out?', 'trial and error, searching online, asking someone, observing others'],
-        ['helped', 'Who or what helped you learn?', 'people, platforms, tutorials, systems'],
-        ['learned', 'What did you learn?', 'lesson or outcome']
-      ];
+const finalChecklistItems=[
+  'Introduction explains your relationship with digital networks.',
+  'The draft has a clear pattern or focus.',
+  'Body includes three meaningful digital literacy moments.',
+  'Each moment connects to at least one digital literacy dimension.',
+  'Each body paragraph includes specific digital details.',
+  'The narrative shows a learning process.',
+  'Conclusion explains how your understanding changed.',
+  'The draft has been reviewed for clarity and organization.'
+];
 
-      const paragraphChecklist = [
-        'Context: when, where, and who',
-        'Writing or reading activity: what you did',
-        'Process: how you figured it out or learned',
-        'Detail: examples, quoted writing, screenshot description, or specific actions',
-        'Reflection: what you learned and why it matters'
-      ];
+const paragraphTrack=[
+  {id:'intro',title:'Introduction paragraph',bind:'paragraphTrack.intro',prompt:'Introduce your relationship with digital networks and preview the pattern your essay will show.',example:'Digital networks have shaped the way I read, write, and learn because they are often the first place I go when I need answers or connection. My experiences online have taught me that digital literacy is not just knowing how to use apps. It also means judging information, adjusting communication for audiences, noticing how platforms shape what I see, and learning tools when they do not work the way I expect.',starters:['Digital networks have shaped how I read, write, and learn because ','At first, I thought digital literacy meant ','Across my experiences, I can see a pattern: '],checklist:['Names relationship with digital networks','Introduces digital literacy as more than tool use','Previews a pattern across the essay']},
+  {id:'body1',title:'Body paragraph 1',bind:'moments.0.paragraph',prompt:'Write one focused body paragraph about your first digital moment.',example:'One moment that taught me about digital networks happened when I was researching a topic for class. I clicked one of the first results because it looked polished, but then noticed it was sponsored and came from an organization with a clear point of view. I opened other sources, checked who published them, and compared their evidence. That process taught me that online research is not only about finding information quickly. It is also about slowing down enough to decide what deserves trust.',starters:['One moment that taught me something about digital networks happened when ','At first, I was trying to ','The confusing part was ','I figured it out by ','This changed how I understand '],checklist:paragraphChecklist},
+  {id:'body2',title:'Body paragraph 2',bind:'moments.1.paragraph',prompt:'Write one focused body paragraph about your second digital moment.',example:'Another important moment happened when I had to write a message in a class group chat. I first typed it like a casual text, but then realized the audience included people I did not know well and that the chat was being used for a graded project. I changed my wording, added the deadline, and organized the message into short lines. I learned that digital writing changes depending on audience, purpose, and space.',starters:['A second moment shows a different side of my digital literacy because ','In this situation, the audience mattered because ','I revised my approach by ','This moment connects to digital literacy because '],checklist:paragraphChecklist},
+  {id:'body3',title:'Body paragraph 3',bind:'moments.2.paragraph',prompt:'Write one focused body paragraph about your third digital moment.',example:'A third moment happened when I had to submit a project through an unfamiliar platform. I thought uploading the file would be simple, but the system rejected it because the file type was wrong. I searched the help menu, changed the export settings, and checked the preview before submitting again. The problem showed me that technical literacy is part of writing because the tool can affect whether my work reaches the audience at all.',starters:['A third moment happened when ','The tool or system made the task harder because ','I learned the feature by ','Now I understand that technical choices matter because '],checklist:paragraphChecklist},
+  {id:'conclusion',title:'Conclusion paragraph',bind:'paragraphTrack.conclusion',prompt:'Reflect on what the three moments show about your growth as a digital reader, writer, and learner.',example:'Together, these moments show that my digital literacy has developed through practice, mistakes, and reflection. I learned to be more careful with sources, more aware of audience, and more patient with digital tools. I also learned that digital networks are not neutral spaces. They shape what I see, how I communicate, and what I need to know in order to participate effectively.',starters:['Together, these moments show that ','My understanding changed because ','In the future, I want to approach digital spaces by '],checklist:['Connects all three moments','Explains growth or change','Looks forward to future digital habits']}
+];
 
-      const finalChecklistItems = [
-        'Introduction explains your relationship with digital networks.',
-        'Body includes three moments, one paragraph per moment.',
-        'Each moment connects to at least one digital literacy dimension.',
-        'Each moment shows your learning process and outcome.',
-        'Specific details help readers picture what happened.',
-        'Conclusion explains how your learning evolved.',
-        'Essay title or opening gives the narrative a clear focus.'
-      ];
+function defaultState(){return{track:'guided',currentScreen:0,xp:0,xpEvents:{},cardReactions:{},quizAnswers:{},scenario:'',moments:[1,2,3].map(()=>({title:'',fields:{},literacies:[],analysis:{},paragraph:'',checklist:{}})),paragraphTrack:{intro:'',conclusion:'',checklist:{}},essay:{relationship:'',pattern:'',conclusion:'',draft:''},review:{peerNotes:'',checklist:{}},ui:{conceptIndex:0,quizIndex:0,scenarioIndex:0,momentQuestion:[0,0,0],analysisQuestion:[0,0,0],paragraphIndex:0}}}
+function merge(base,incoming){
+  if(Array.isArray(base)) return base.map((b,i)=>merge(b,incoming&&incoming[i]));
+  if(base&&typeof base==='object'){const out={...base};Object.keys(incoming||{}).forEach(k=>out[k]=merge(base[k],incoming[k]));return out}
+  return incoming!==undefined?incoming:base;
+}
+function loadState(){try{const raw=localStorage.getItem(STORAGE_KEY);return raw?merge(defaultState(),JSON.parse(raw)):defaultState()}catch{return defaultState()}}
+const state=loadState();
 
-      function defaultState() {
-        return {
-          cardReactions: {}, quizAnswers: {}, scenario: '',
-          moments: [1,2,3].map(i => ({ title: '', fields: {}, literacies: [], analysis: {}, paragraph: '', checklist: {} })),
-          essay: { relationship: '', conclusion: '', draft: '', pattern: '' },
-          review: { peerNotes: '', checklist: {} }
-        };
-      }
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+const wc=t=>String(t||'').trim().split(/\s+/).filter(Boolean).length;
+const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
+const btn=(action,label,cls='btn secondary small',extra='')=>`<button class="${esc(cls)}" type="button" data-action="${esc(action)}" ${extra}>${label}</button>`;
+const starter=s=>btn('starter',esc(s.length>22?s.slice(0,22)+'…':s),'btn secondary small',`data-starter="${esc(s)}"`);
+function getPath(obj,path){return String(path).split('.').reduce((r,p)=>r?r[p]:undefined,obj)}
+function setPath(obj,path,value){const parts=String(path).split('.');let r=obj;parts.slice(0,-1).forEach(p=>{if(r[p]===undefined||r[p]===null||typeof r[p]!=='object')r[p]={};r=r[p]});r[parts[parts.length-1]]=value}
 
-      function loadState() {
-        try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          if (!raw) return defaultState();
-          const parsed = JSON.parse(raw);
-          return merge(defaultState(), parsed);
-        } catch (e) {
-          return defaultState();
-        }
-      }
+let saveTimer=null;
+let lastModalTrigger=null;
 
-      function merge(base, incoming) {
-        if (Array.isArray(base)) return incoming || base;
-        if (base && typeof base === 'object') {
-          const out = { ...base };
-          Object.keys(incoming || {}).forEach(k => out[k] = merge(base[k], incoming[k]));
-          return out;
-        }
-        return incoming !== undefined ? incoming : base;
-      }
+function saveState(now=false){
+  clearTimeout(saveTimer);
+  const doSave=()=>{
+    try{
+      const status=$('#saveStatus');
+      if(status)status.textContent='Saving…';
+      localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+      if(status)status.textContent='Saved locally · '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+    }catch{
+      const status=$('#saveStatus');
+      if(status)status.textContent='Save failed · download a copy';
+      showToast('Local save failed. Download a copy.');
+    }
+    updateShell();
+  };
+  if(now)doSave();else saveTimer=setTimeout(doSave,350);
+}
+function awardXP(key,amount,msg){
+  // XP is now deterministic: interaction events are remembered only so older saves remain compatible.
+  if(key)state.xpEvents[key]=true;
+}
+const XP_BENCHMARKS=[
+  {label:'Getting started',xp:50,meaning:'minimum meaningful progress'},
+  {label:'Good finish',xp:430,meaning:'meets the core completion path'},
+  {label:'Great finish',xp:520,meaning:'complete with stronger drafting and reflection'},
+  {label:'100% completion',xp:600,meaning:'all major requirements and stretch goals complete'}
+];
+function calculateXP(){
+  const screens=getScreens();
+  let xp=0;
+  // Major progression: each completed screen is worth a fixed amount.
+  xp+=screens.filter(s=>s.complete()).length*35;
+  // Major drafting milestones, awarded deterministically from the current work.
+  xp+=state.moments.filter(m=>wc(m.paragraph)>=100).length*25;
+  xp+=state.moments.filter(m=>m.literacies.length&&analysisQuestions.filter(([k])=>String(m.analysis[k]||'').trim()).length>=2).length*15;
+  if(wc(state.essay.draft)>=350)xp+=40;
+  const reviewChecks=Object.values(state.review.checklist).filter(Boolean).length;
+  if(reviewChecks>=5)xp+=25;
+  if(reviewChecks===finalChecklistItems.length)xp+=25;
+  if(state.track==='paragraph'){
+    xp+=[state.paragraphTrack.intro,state.paragraphTrack.conclusion].filter(x=>wc(x)>=70).length*20;
+  }
+  return Math.min(600,xp);
+}
+function xpBenchmarkLabel(xp){
+  if(xp>=600)return'100% completion';
+  if(xp>=520)return'Great finish';
+  if(xp>=430)return'Good finish';
+  if(xp>=50)return'In progress';
+  return'Just starting';
+}
+function nextBenchmark(xp){return XP_BENCHMARKS.find(b=>xp<b.xp)||null}
 
-      function saveState() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        updateAllDerived();
-      }
+function levelFromXP(x){return x>=520?6:x>=380?5:x>=260?4:x>=150?3:x>=60?2:1}
+function nextLevelTarget(l){return [0,60,150,260,380,520,700][l]||700}
 
-      function $(selector, root = document) { return root.querySelector(selector); }
-      function $$(selector, root = document) { return Array.from(root.querySelectorAll(selector)); }
-      function esc(str) {
-        return String(str || '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-      }
+function getScreens(){
+  const common=[
+    {id:'welcome',kicker:'Start',title:'Choose how you want to build your narrative.',render:renderWelcome,complete:()=>true,hint:'Choose a path to begin.'},
+    {id:'concepts',kicker:'Concepts',title:'Explore one digital literacy dimension at a time.',render:renderConcepts,complete:()=>Object.keys(state.cardReactions).length>=2,hint:'React to at least 2 literacy cards.'},
+    {id:'profile',kicker:'Profile',title:'Take a quick learner profile quiz.',render:renderProfile,complete:()=>Object.keys(state.quizAnswers).length>=3,hint:'Answer at least 3 profile questions.'},
+    {id:'finder',kicker:'Idea Finder',title:'Find a digital moment worth writing about.',render:renderFinder,complete:()=>!!state.scenario,hint:'Select a scenario that could become a narrative moment.'}
+  ];
+  if(state.track==='paragraph'){
+    return [...common,...paragraphTrack.map((p,i)=>({id:'para-'+p.id,kicker:'Paragraph Track',title:p.title,render:()=>renderParagraphTrack(i),complete:()=>wc(getPath(state,p.bind))>=(p.id==='intro'||p.id==='conclusion'?70:120),hint:p.id==='intro'||p.id==='conclusion'?'Draft at least 70 words.':'Draft at least 120 words.'})),
+    {id:'assemble',kicker:'Assemble',title:'Combine your paragraphs into a complete draft.',render:renderAssembleParagraphTrack,complete:()=>wc(state.essay.draft)>=350,hint:'Assemble or write a complete draft of at least 350 words.'},
+    {id:'review',kicker:'Review',title:'Review, export, and submit.',render:renderReview,complete:()=>Object.values(state.review.checklist).filter(Boolean).length>=5&&wc(state.essay.draft)>0,hint:'Check at least 5 review items and make sure your essay draft is present.'}];
+  }
+  return [...common,
+    {id:'moment-1',kicker:'Guided Draft · Moment 1',title:'Build your first digital moment.',render:()=>renderGuidedMoment(0),complete:()=>momentQuestionDone(0)>=5,hint:'Add a title and answer at least 4 guided questions.'},
+    {id:'moment-2',kicker:'Guided Draft · Moment 2',title:'Build your second digital moment.',render:()=>renderGuidedMoment(1),complete:()=>momentQuestionDone(1)>=5,hint:'Add a title and answer at least 4 guided questions.'},
+    {id:'moment-3',kicker:'Guided Draft · Moment 3',title:'Build your third digital moment.',render:()=>renderGuidedMoment(2),complete:()=>momentQuestionDone(2)>=5,hint:'Add a title and answer at least 4 guided questions.'},
+    {id:'analysis-1',kicker:'Connect · Moment 1',title:'Connect Moment 1 to digital literacy.',render:()=>renderAnalysis(0),complete:()=>analysisDone(0)>=2&&state.moments[0].literacies.length,hint:'Select at least 1 literacy tag and answer at least 2 connection questions.'},
+    {id:'analysis-2',kicker:'Connect · Moment 2',title:'Connect Moment 2 to digital literacy.',render:()=>renderAnalysis(1),complete:()=>analysisDone(1)>=2&&state.moments[1].literacies.length,hint:'Select at least 1 literacy tag and answer at least 2 connection questions.'},
+    {id:'analysis-3',kicker:'Connect · Moment 3',title:'Connect Moment 3 to digital literacy.',render:()=>renderAnalysis(2),complete:()=>analysisDone(2)>=2&&state.moments[2].literacies.length,hint:'Select at least 1 literacy tag and answer at least 2 connection questions.'},
+    {id:'paragraphs',kicker:'Narrative Development',title:'Turn your answers into body paragraphs.',render:renderGuidedParagraphs,complete:()=>state.moments.every(m=>wc(m.paragraph)>=100),hint:'Draft all 3 body paragraphs with at least 100 words each.'},
+    {id:'essay',kicker:'Full Draft',title:'Build a complete digital literacy narrative.',render:renderGuidedEssay,complete:()=>wc(state.essay.draft)>=350,hint:'Build or write a complete draft of at least 350 words.'},
+    {id:'review',kicker:'Review',title:'Review, export, and submit.',render:renderReview,complete:()=>Object.values(state.review.checklist).filter(Boolean).length>=5&&wc(state.essay.draft)>0,hint:'Check at least 5 review items and make sure your essay draft is present.'}
+  ];
+}
 
-      function render() {
-        renderStepPills();
-        renderBadges();
-        renderFlipCards();
-        renderQuiz();
-        renderScenarios();
-        renderMomentCards();
-        renderAnalysisCards();
-        renderParagraphCards();
-        renderFinalChecklist();
-        hydrateSimpleFields();
-        bindEvents();
-        updateAllDerived();
-      }
+function render(){
+  const screens=getScreens();
+  state.currentScreen=clamp(state.currentScreen,0,screens.length-1);
+  const screen=screens[state.currentScreen];
+  const complete=screen.complete();
+  $('#stage').innerHTML=`<section>
+    <div class="screen-head">
+      <div>
+        <div class="screen-kicker">${esc(screen.kicker)}</div>
+        <h2 id="screenTitle" tabindex="-1">${esc(screen.title)}</h2>
+        ${renderStepStrip(screens)}
+      </div>
+      <div class="screen-actions">${btn('show-progress','View progress','btn brand small')}${btn('copy-progress','Copy progress summary')}${btn('save-now','Save')}</div>
+    </div>
+    <div class="screen-body">${screen.render()}</div>
+    <div class="screen-footer">
+      ${btn('prev-screen','← Back','btn secondary',state.currentScreen===0?'disabled':'')}
+      <div class="footer-center">
+        Screen ${state.currentScreen+1} of ${screens.length} · ${complete?'Complete':'In progress'}
+        ${complete?'':`<span class="completion-hint">${esc(screen.hint||'Keep developing this screen.')}</span>`}
+      </div>
+      ${btn('next-screen','Next →','btn brand',(!complete||state.currentScreen===screens.length-1)?'disabled':'')}
+    </div>
+  </section>`;
+  bindStageEvents();updateShell();updateJump();
+}
+function renderStepStrip(screens){
+  return `<div class="step-strip" aria-label="Screen progress">${screens.map((s,i)=>`<button class="step-dot ${s.complete()?'done':''} ${i===state.currentScreen?'active':''}" type="button" data-action="jump-screen" data-index="${i}" aria-label="Go to screen ${i+1}: ${esc(s.kicker)}">${i+1}</button>`).join('')}</div>`;
+}
 
-      function renderStepPills() {
-        const steps = ['Concepts', 'Profile', 'Moment Finder', 'Step 1', 'Step 2', 'Step 3', 'Step 4', 'Review'];
-        $('#stepPills').innerHTML = steps.map((s, i) => `<div class="step-pill" data-step-pill="${i}"><span>${i+1}</span><span>${s}</span></div>`).join('');
-      }
+function renderWelcome(){return `<div class="prompt-block"><strong>Start here</strong><p>Choose a guided question process or a paragraph-by-paragraph practice track.</p></div>
+<div class="grid-2">
+  <button class="choice-card ${state.track==='guided'?'selected':''}" type="button" data-action="select-track" data-track="guided">
+    <div class="big-icon" aria-hidden="true">🧭</div><h3>Guided Draft Builder</h3><p>Best for step-by-step questions that become moments, analysis, paragraphs, and a full draft.</p>
+  </button>
+  <button class="choice-card ${state.track==='paragraph'?'selected':''}" type="button" data-action="select-track" data-track="paragraph">
+    <div class="big-icon" aria-hidden="true">✍️</div><h3>Paragraph-by-Paragraph Practice</h3><p>Best for learning from models, checklists, starters, and focused writing boxes.</p>
+  </button>
+</div>
+<div class="grid-3" style="margin-top:16px; display: none;"><div class="info-card"><h3>One screen at a time</h3><p>No crowded walls of fields.</p></div><div class="info-card"><h3>View progress</h3><p>Open the progress menu to see deterministic XP, completion requirements, and benchmarks.</p></div><div class="info-card"><h3>Works offline</h3><p>Everything is stored only in this browser.</p></div></div>`}
 
-      function renderBadges() {
-        const badgeNames = [...literacies.map(l => l.badge), 'Detail Builder', 'Narrative Connector'];
-        $('#badgeRow').innerHTML = badgeNames.map(b => `<span class="badge" data-badge="${esc(b)}">${esc(b)}</span>`).join('');
-      }
+function renderConcepts(){
+  const i=clamp(state.ui.conceptIndex,0,literacies.length-1),l=literacies[i];
+  return `<div class="grid-2"><div class="example-card" style="border-color:var(--${l.id})"><div class="big-icon" aria-hidden="true">${l.icon}</div><h3>${esc(l.title)}</h3><div class="tags">${tagHtml(l.id)}</div><p><strong>${esc(l.short)}</strong></p><p>${esc(l.definition)}</p><div class="prompt-block"><strong>Example or explanation</strong><p>${esc(l.example)}</p>${l.details&&l.details.length?`<ul class="quality-list">${l.details.map(d=>`<li>${esc(d)}</li>`).join('')}</ul>`:''}</div><p class="field-help">${i+1} of ${literacies.length}</p></div>
+  <div class="writing-card"><h3>Quick reaction</h3><fieldset class="option-list"><legend class="field-help">${esc(l.question)}</legend>${['I have done this','I am not sure yet','I want to learn more'].map(o=>`<label class="option"><input type="radio" name="conceptReaction" value="${esc(o)}" ${state.cardReactions[l.id]===o?'checked':''}><span>${esc(o)}</span></label>`).join('')}</fieldset><div class="starter-bank">${btn('concept-prev','← Previous concept','btn secondary small',i===0?'disabled':'')}${btn('concept-next','Next concept →','btn secondary small',i===literacies.length-1?'disabled':'')}</div><div class="prompt-block"><strong>Tip</strong><p>If one concept reminds you of an experience, that experience can become a narrative moment.</p></div></div></div>`;
+}
 
-      function renderFlipCards() {
-        $('#flipGrid').innerHTML = literacies.map(l => `
-          <article class="flip-card" data-card="${l.id}" tabindex="0" aria-label="${esc(l.title)} card">
-            <div class="flip-inner">
-              <div class="flip-face flip-front" style="color:var(--${l.id})">
-                <div>
-                  <div class="card-icon">${l.icon}</div>
-                  <h3 class="flip-title">${esc(l.title)}</h3>
-                  <p>${esc(l.short)}</p>
-                </div>
-                <p><strong>Click or hover to reveal definition</strong></p>
-              </div>
-              <div class="flip-face flip-back">
-                <div>
-                  <div class="card-icon">${l.icon}</div>
-                  <h3 class="flip-title">${esc(l.title)}</h3>
-                  <p>${esc(l.definition)}</p>
-                  <div class="example"><strong>Example:</strong> ${esc(l.example)}</div>
-                </div>
-                <div class="micro-actions" data-reaction-group="${l.id}">
-                  ${['I’ve done this', 'I’m not sure', 'I want to learn more'].map(opt => `<button type="button" data-reaction="${esc(opt)}">${esc(opt)}</button>`).join('')}
-                </div>
-              </div>
-            </div>
-          </article>
-        `).join('');
-      }
+function renderProfile(){
+  const i=clamp(state.ui.quizIndex,0,quiz.length-1),[id,q,opts]=quiz[i],counts=literacyCountsFromQuiz(),answered=Object.keys(state.quizAnswers).length,top=Object.entries(counts).sort((a,b)=>b[1]-a[1]).filter(x=>x[1]>0);
+  return `<div class="prompt-block"><strong>Quick digital literacy profile</strong><p>This is not a test. There is no “right” answer. The goal is to find out which dimensions of digital literacy feel most familiar to you and which ones you may want to explore more.</p></div><div class="grid-2"><div class="writing-card"><h3>Question ${i+1} of ${quiz.length}</h3><fieldset class="option-list"><legend>${esc(q)}</legend>${opts.map(([lit,text])=>`<label class="option"><input type="radio" name="${id}" value="${lit}" ${state.quizAnswers[id]===lit?'checked':''}><span>${esc(text)}</span></label>`).join('')}</fieldset><div class="starter-bank">${btn('quiz-prev','← Previous question','btn secondary small',i===0?'disabled':'')}${btn('quiz-next','Next question →','btn secondary small',i===quiz.length-1?'disabled':'')}</div></div>
+  <div class="info-card"><h3>Your current profile</h3>${answered?`<div class="tags">${top.map(([id])=>tagHtml(id)).join('')}</div><p>${esc(profileAdvice(top))}</p><p class="field-help">${answered} of ${quiz.length} questions answered.</p>`:`<div class="empty-note">Answer a question to see your learner profile.</div>`}</div></div>`;
+}
 
-      function renderQuiz() {
-        $('#quizGrid').innerHTML = quiz.map(item => `
-          <div class="quiz-card">
-            <h3>${esc(item.q)}</h3>
-            <div class="options">
-              ${item.options.map(([lit, text], idx) => `
-                <label class="option">
-                  <input type="radio" name="${item.id}" value="${lit}" ${state.quizAnswers[item.id] === lit ? 'checked' : ''}>
-                  <span>${esc(text)}</span>
-                </label>
-              `).join('')}
-            </div>
-          </div>
-        `).join('');
-      }
+function renderFinder(){
+  const i=clamp(state.ui.scenarioIndex,0,scenarios.length-1),s=scenarios[i];
+  return `<div class="grid-2"><div class="example-card"><div class="big-icon" aria-hidden="true">${s.icon}</div><h3>${esc(s.title)}</h3><p>${esc(s.sample)}</p><div class="tags">${s.suggested.map(tagHtml).join('')}</div><h3>Try answering</h3><ul class="quality-list">${s.questions.map(q=>`<li>${esc(q)}</li>`).join('')}</ul><div class="starter-bank">${btn('scenario-prev','← Previous scenario','btn secondary small',i===0?'disabled':'')}${btn('scenario-next','Next scenario →','btn secondary small',i===scenarios.length-1?'disabled':'')}</div></div>
+  <div class="writing-card"><h3>Use this scenario?</h3><p>Choosing a scenario marks it as your current idea and can seed Moment 1.</p><div class="starter-bank">${btn('choose-scenario',state.scenario===s.id?'Selected':'Select scenario','btn brand',`data-scenario="${esc(s.id)}"`)}${btn('seed-moment','Seed Moment 1','btn secondary small',`data-scenario="${esc(s.id)}"`)}</div>${state.scenario?`<div class="prompt-block"><strong>Selected idea</strong><p>${esc((scenarios.find(x=>x.id===state.scenario)||{}).title||'')}</p></div>`:`<div class="empty-note">No scenario selected yet.</div>`}</div></div>`;
+}
 
-      function renderScenarios() {
-        $('#scenarioList').innerHTML = scenarios.map(s => `<button type="button" data-scenario="${s.id}">${s.icon} ${esc(s.title)}</button>`).join('');
-        updateScenarioOutput();
-      }
+function renderGuidedMoment(idx){    
+  const m=state.moments[idx],qi=clamp(state.ui.momentQuestion[idx]||0,0,guidedFields.length-1),[key,label,hint,before,after]=guidedFields[qi],path=`moments.${idx}.fields.${key}`,val=m.fields[key]||'';    
+  return `<div class="grid-2"><div class="writing-card"><label class="field-label" for="momentTitle">Title for Moment ${idx+1}</label><input id="momentTitle" type="text" data-bind="moments.${idx}.title" value="${esc(m.title)}" placeholder="Example: Checking whether an AI summary was accurate">    
+  <div class="prompt-block"><strong>Question ${qi+1} of ${guidedFields.length}</strong><p>${esc(label)}</p><p><strong>Draft sentence you are completing:</strong><br>${esc(before)} <span id="guidedLiveAnswer" style="display:inline-block;min-width:120px;border-bottom:2px solid #5267ff;color:#5267ff;font-weight:900;">${esc(val||'_____')}</span>${esc(after)}</p></div><label class="field-label" for="guidedAnswer">Your words for the blank</label><textarea id="guidedAnswer" data-bind="${path}" data-award="guided-${idx}-${key}" placeholder="${esc(hint)}">${esc(val)}</textarea><p class="field-help"><span data-count="guidedAnswer">${wc(val)}</span> words · Aim for 8–25 focused words or a short phrase.</p>    
+  <div class="starter-bank" data-target="guidedAnswer">${['in my first semester','on Canvas','write a clear message','compare sources','change my privacy setting','revise the design','ask for feedback','digital spaces are designed'].map(starter).join('')}</div><div class="starter-bank">${btn('guided-q-prev','← Previous question','btn secondary small',`data-index="${idx}" ${qi===0?'disabled':''}`)}${btn('guided-q-next','Next question →','btn secondary small',`data-index="${idx}" ${qi===guidedFields.length-1?'disabled':''}`)}</div></div>    
+  <div class="info-card"><h3>Coherent mini-draft preview</h3><div class="draft-preview">${renderMomentPreview(idx)}</div><p><strong>${momentCompletion(idx)}% of this moment drafted</strong></p><div class="mini-meter"><span style="width:${momentCompletion(idx)}%"></span></div></div></div>`;    
+}    
+function renderAnalysis(idx){
+  const m=state.moments[idx],qi=clamp(state.ui.analysisQuestion[idx]||0,0,analysisQuestions.length-1),[key,label,hint]=analysisQuestions[qi];
+  return `<div class="grid-2"><div class="writing-card"><h3>${esc(m.title||'Moment '+(idx+1))}</h3><p class="field-help">Tag the moment, then answer one connection question at a time.</p><div class="checklist">${literacies.map(l=>`<label><input type="checkbox" data-action="lit-toggle" data-index="${idx}" data-lit="${l.id}" ${m.literacies.includes(l.id)?'checked':''}><span><strong>${l.icon} ${esc(l.title.replace(' Digital Literacy',''))}</strong><br><small>${esc(l.question)}</small></span></label>`).join('')}</div></div>
+  <div class="writing-card"><div class="prompt-block"><strong>Connection question ${qi+1} of ${analysisQuestions.length}</strong><p>${esc(label)}</p></div><label class="field-label" for="analysisAnswer">Your connection</label><textarea id="analysisAnswer" data-bind="moments.${idx}.analysis.${key}" data-award="analysis-${idx}-${key}" placeholder="${esc(hint)}">${esc(m.analysis[key]||'')}</textarea><p class="field-help"><span data-count="analysisAnswer">${wc(m.analysis[key]||'')}</span> words.</p><div class="starter-bank">${btn('analysis-q-prev','← Previous question','btn secondary small',`data-index="${idx}" ${qi===0?'disabled':''}`)}${btn('analysis-q-next','Next question →','btn secondary small',`data-index="${idx}" ${qi===analysisQuestions.length-1?'disabled':''}`)}</div><div class="tags">${m.literacies.map(tagHtml).join('')||'<span class="field-help">No dimensions selected yet.</span>'}</div></div></div>`;
+}
 
-      function updateScenarioOutput() {
-        const selected = scenarios.find(s => s.id === state.scenario);
-        $$('#scenarioList button').forEach(btn => btn.classList.toggle('active', btn.dataset.scenario === state.scenario));
-        if (!selected) return;
-        $('#scenarioOutput').innerHTML = `
-          <h3>${selected.icon} ${esc(selected.title)}</h3>
-          <p>${esc(selected.sample)}</p>
-          <div class="tags">${selected.suggested.map(t => tagHtml(t.toLowerCase())).join('')}</div>
-          <h4>Try answering:</h4>
-          <ul>${selected.questions.map(q => `<li>${esc(q)}</li>`).join('')}</ul>
-          <button class="btn small brand" type="button" id="useScenarioBtn">Use this as a seed for Moment 1</button>
-        `;
-      }
+function renderGuidedParagraphs(){
+  // Auto-create editable body paragraphs from the student's answers so the student revises a draft instead of starting from a blank box.
+  state.moments.forEach((moment, i)=>{ if(!String(moment.paragraph||'').trim()) moment.paragraph=generateBodyParagraph(i); });
+  const idx=clamp(state.ui.paragraphIndex||0,0,2),m=state.moments[idx],shown=m.paragraph;
+  return `<div class="grid-2"><div class="writing-card"><h3>Moment ${idx+1}: ${esc(m.title||'Untitled')}</h3><div class="prompt-block"><strong>Already-written body paragraph from your answers</strong><p>The app has turned your sentence-frame answers into a complete paragraph. Edit it, add vivid details, and make it sound like you.</p></div><label class="field-label" for="guidedParagraph">Editable body paragraph</label><textarea id="guidedParagraph" class="large" data-bind="moments.${idx}.paragraph" data-award="paragraph-${idx}" placeholder="Turn your answers into one detailed paragraph.">${esc(shown)}</textarea><p class="field-help"><span data-count="guidedParagraph">${wc(shown)}</span> words · Aim for 120+ words. Add specific details before moving on.</p><div class="starter-bank" data-target="guidedParagraph">${['For example, ','On the screen, I noticed ','At first, I assumed ','Then I decided to ','This connects to digital literacy because ','Looking back, '].map(starter).join('')}</div><div class="starter-bank">${btn('regenerate-paragraph','Regenerate from my answers','btn secondary small',`data-index="${idx}"`)}${btn('paragraph-prev','← Previous moment','btn secondary small',idx===0?'disabled':'')}${btn('paragraph-next','Next moment →','btn secondary small',idx===2?'disabled':'')}</div></div>
+  <div class="info-card"><h3>What this paragraph should do</h3><ul class="quality-list"><li>Start with the situation and digital space.</li><li>Explain the audience, purpose, platform, or tool.</li><li>Describe the challenge and the actions you took.</li><li>Name the digital literacy dimension and explain why it fits.</li><li>End with what changed in your thinking or behavior.</li></ul><h3>Paragraph quality check</h3>${renderQualityCheck(shown)}<h3>Checklist</h3><div class="checklist">${paragraphChecklist.map((item,i)=>`<label><input type="checkbox" data-bind="moments.${idx}.checklist.${i}" ${m.checklist[i]?'checked':''}><span>${esc(item)}</span></label>`).join('')}</div></div></div>`;
+}
+function renderGuidedEssay(){
+  if(!String(state.essay.draft||'').trim()) state.essay.draft=generateFullGuidedDraft();
+  const shown=state.essay.draft;
+  return `<div class="grid-2"><div class="writing-card"><div class="prompt-block"><strong>Step 4: literacy map + timeline</strong><p>The timeline orders your three moments so the essay has a beginning, middle, and end. It helps you decide what happened first, what changed next, and what you understand now. The literacy map shows which dimensions each moment proves: rhetorical, cognitive, critical, and/or functional. Use both tools to explain growth instead of listing unrelated events.</p></div><h3>Timeline</h3><ol class="quality-list">${state.moments.map((m,i)=>`<li><strong>Moment ${i+1}:</strong> ${esc(m.title||'Untitled moment')} — ${esc(m.fields.when||'add when it happened')}</li>`).join('')}</ol><h3>Literacy map</h3><div class="checklist">${state.moments.map((m,i)=>`<label><input type="checkbox" disabled ${m.literacies.length?'checked':''}><span>Moment ${i+1}: ${m.literacies.map(tagHtml).join(' ')||'choose at least one dimension'}</span></label>`).join('')}</div><label class="field-label" for="relationshipInput">Opening idea you can revise</label><textarea id="relationshipInput" data-bind="essay.relationship" placeholder="Digital networks matter to me because...">${esc(state.essay.relationship)}</textarea><label class="field-label" for="patternInput">Pattern across your three moments</label><select id="patternInput" data-bind="essay.pattern">${['','I became more confident using digital tools.','I became more careful about online information.','I learned that different platforms require different writing choices.','I noticed that digital spaces are shaped by power, access, or bias.','I learned mostly through trial and error.','I moved from confusion to confidence.','I became more aware of audience.'].map(o=>`<option value="${esc(o)}" ${state.essay.pattern===o?'selected':''}>${o?esc(o):'Choose a pattern...'}</option>`).join('')}</select><label class="field-label" for="conclusionInput">Closing idea you can revise</label><textarea id="conclusionInput" data-bind="essay.conclusion" placeholder="Together, these moments show...">${esc(state.essay.conclusion)}</textarea><div class="starter-bank">${btn('build-guided-draft','Regenerate complete essay','btn secondary small')}${btn('copy-essay','Copy essay')}</div></div>
+  <div class="writing-card"><div class="prompt-block"><strong>Complete essay generated from your work</strong><p>This draft includes an introduction, three body paragraphs, and a conclusion. Your job now is to edit, add examples, clarify transitions, and make the voice your own.</p></div><label class="field-label" for="essayDraft">Essay draft</label><textarea id="essayDraft" class="large" data-bind="essay.draft" data-award="essay-draft" placeholder="Build your essay here, or use the draft builder.">${esc(shown)}</textarea><p class="field-help"><span data-count="essayDraft">${wc(shown)}</span> words.</p>${renderQualityCheck(shown,true)}</div></div>`;
+}
+function renderParagraphTrack(i){
+  const p=paragraphTrack[i],value=getPath(state,p.bind)||'',checkRoot=(p.id==='intro'||p.id==='conclusion')?`paragraphTrack.checklist.${p.id}`:`moments.${i-1}.checklist`;
+  return `<div class="grid-2"><div class="example-card"><h3>Study this example</h3><p>${esc(p.prompt)}</p><div class="prompt-block"><strong>Model paragraph</strong><p>${esc(p.example)}</p></div><h3>What to notice</h3><ul class="quality-list">${p.checklist.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+  <div class="writing-card"><label class="field-label" for="trackParagraph">${esc(p.title)}</label><textarea id="trackParagraph" class="large" data-bind="${esc(p.bind)}" data-award="track-${p.id}" placeholder="${esc(p.prompt)}">${esc(value)}</textarea><p class="field-help"><span data-count="trackParagraph">${wc(value)}</span> words.</p><div class="starter-bank" data-target="trackParagraph">${p.starters.map(starter).join('')}</div><h3>Checklist</h3><div class="checklist">${p.checklist.map((item,c)=>`<label><input type="checkbox" data-bind="${checkRoot}.${c}" ${getPath(state,`${checkRoot}.${c}`)?'checked':''}><span>${esc(item)}</span></label>`).join('')}</div>${renderQualityCheck(value,p.id==='intro'||p.id==='conclusion')}</div></div>`;
+}
 
-      function renderMomentCards() {
-        $('#momentCards').innerHTML = state.moments.map((m, idx) => `
-          <details class="moment-details" ${idx === 0 ? 'open' : ''}>
-            <summary>
-              <span>Moment ${idx + 1}: ${esc(m.title || 'Untitled digital moment')}</span>
-              <span class="summary-meta">${momentCompletion(idx)}% complete</span>
-            </summary>
-            <div class="moment-body">
-              <label class="field-label" for="moment${idx}title">Title this moment</label>
-              <input id="moment${idx}title" type="text" data-moment-title="${idx}" value="${esc(m.title)}" placeholder="Example: Figuring out how to spot fake reviews">
-              <div class="starter-bank" data-target="moment${idx}fields-learned">
-                <button type="button" data-starter="I learned that digital networks ">Learning starter</button>
-                <button type="button" data-starter="At first, I thought ">Confusion starter</button>
-                <button type="button" data-starter="I figured it out by ">Process starter</button>
-              </div>
-              <div class="grid-2">
-                ${guidedFields.map(([key, label, hint]) => `
-                  <div>
-                    <label class="field-label" for="moment${idx}fields-${key}">${esc(label)}</label>
-                    <textarea id="moment${idx}fields-${key}" data-moment-field="${idx}:${key}" placeholder="${esc(hint)}">${esc(m.fields[key] || '')}</textarea>
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-          </details>
-        `).join('');
-      }
+function renderAssembleParagraphTrack(){
+  const assembled=[state.paragraphTrack.intro,state.moments[0].paragraph,state.moments[1].paragraph,state.moments[2].paragraph,state.paragraphTrack.conclusion].filter(Boolean).join('\n\n');
+  return `<div class="grid-2"><div class="info-card"><h3>Paragraph inventory</h3><div class="checklist">${paragraphTrack.map(p=>{const words=wc(getPath(state,p.bind));return `<label><input type="checkbox" disabled ${words>=50?'checked':''}><span>${esc(p.title)} · ${words} words</span></label>`}).join('')}</div>${btn('build-assembled','Assemble complete draft','btn brand')}<div class="prompt-block"><strong>Assembled preview</strong><p>${esc(assembled||'Write your paragraphs first, then assemble them here.')}</p></div></div>
+  <div class="writing-card"><label class="field-label" for="essayDraft">Complete essay draft</label><textarea id="essayDraft" class="large" data-bind="essay.draft" data-award="essay-draft">${esc(state.essay.draft)}</textarea><p class="field-help"><span data-count="essayDraft">${wc(state.essay.draft)}</span> words.</p><div class="starter-bank">${btn('copy-essay','Copy essay')}</div></div></div>`;
+}
 
-      function renderAnalysisCards() {
-        $('#analysisCards').innerHTML = state.moments.map((m, idx) => `
-          <div class="analysis-card">
-            <h3>Moment ${idx + 1}</h3>
-            <p class="field-help">${esc(m.title || 'Use Step 1 to title this moment.')}</p>
-            <div class="checkbox-grid">
-              ${literacies.map(l => `
-                <label class="checkbox-chip">
-                  <input type="checkbox" data-literacy="${idx}:${l.id}" ${m.literacies.includes(l.id) ? 'checked' : ''}>
-                  <span><strong>${l.icon} ${esc(l.title.replace(' Digital Literacy',''))}</strong><br><small>${esc(l.question)}</small></span>
-                </label>
-              `).join('')}
-            </div>
-            <label class="field-label" for="analysis${idx}did">What did you do?</label>
-            <textarea id="analysis${idx}did" data-analysis="${idx}:did">${esc(m.analysis.did || '')}</textarea>
-            <label class="field-label" for="analysis${idx}look">What did it look like? Show, do not just tell.</label>
-            <textarea id="analysis${idx}look" data-analysis="${idx}:look">${esc(m.analysis.look || '')}</textarea>
-            <label class="field-label" for="analysis${idx}how">How did you learn to do it?</label>
-            <textarea id="analysis${idx}how" data-analysis="${idx}:how">${esc(m.analysis.how || '')}</textarea>
-            <label class="field-label" for="analysis${idx}learn">What did you learn?</label>
-            <textarea id="analysis${idx}learn" data-analysis="${idx}:learn">${esc(m.analysis.learn || '')}</textarea>
-          </div>
-        `).join('');
-      }
+function renderReview(){  
+  const peerPrompts=['Where does the writer clearly show audience, purpose, platform, or mode?','Where does the writer evaluate a source, tool, or piece of online information?','Where does the writer notice bias, access, power, misinformation, or unequal visibility?','Where does the writer explain how a tool, setting, feature, or format affected the task?','Which paragraph needs more specific digital detail, such as a screen feature, search term, caption, source, setting, or comment?','What should the writer add to make the conclusion show growth more clearly?'];
+  return `<div class="grid-2"><div class="writing-card"><h3>Final checklist</h3><div class="checklist">${finalChecklistItems.map((item,i)=>`<label><input type="checkbox" data-bind="review.checklist.${i}" ${state.review.checklist[i]?'checked':''}><span>${esc(item)}</span></label>`).join('')}</div><div class="starter-bank">${btn('download','Download .txt','btn brand')}${btn('copy-essay','Copy essay')}${btn('clear','Clear saved work','btn danger')}</div></div>  
+  <div class="writing-card"><h3>Peer or self-review prompts</h3><p class="field-help">Click a prompt to add it to the notes box. The prompt is not answered automatically: a peer can type feedback under it, or you can answer it yourself as a self-review question before exporting.</p><div class="starter-bank" data-target="peerNotes">${peerPrompts.map(starter).join('')}</div><textarea id="peerNotes" class="large" data-bind="review.peerNotes" placeholder="Use this space for comments, revision goals, or peer feedback.">${esc(state.review.peerNotes)}</textarea><div class="prompt-block"><strong>How review/export works</strong><p>The checklist helps you verify the essay’s required parts. The peer review prompts help a reader give targeted feedback. Download exports your track, XP, moments, paragraphs, full essay draft, and review notes as a .txt file.</p></div></div></div>`;  
+}  
+function bindStageEvents(){
+  const stage=$('#stage');
+  stage.onclick=e=>{
+    const el=e.target.closest('[data-action]');if(!el||el.disabled)return;const a=el.dataset.action;
+    if(a==='prev-screen')changeScreen(-1);
+    if(a==='next-screen')changeScreen(1);
+    if(a==='jump-screen'){goToScreen(+el.dataset.index);}
+    if(a==='save-now'){saveState(true);showToast('Saved locally.')}
+    if(a==='show-progress')showProgress();
+    if(a==='copy-progress')copyText(progressSummary(),'Progress summary copied.');
+    if(a==='select-track'){state.track=el.dataset.track;state.currentScreen=1;awardXP('track-'+state.track,10,'learning path selected');saveState(true);render();focusScreenTitle()}
+    if(a==='concept-prev'||a==='concept-next'){state.ui.conceptIndex=clamp(state.ui.conceptIndex+(a==='concept-next'?1:-1),0,literacies.length-1);saveState(true);render()}
+    if(a==='quiz-prev'||a==='quiz-next'){state.ui.quizIndex=clamp(state.ui.quizIndex+(a==='quiz-next'?1:-1),0,quiz.length-1);saveState(true);render()}
+    if(a==='scenario-prev'||a==='scenario-next'){state.ui.scenarioIndex=clamp(state.ui.scenarioIndex+(a==='scenario-next'?1:-1),0,scenarios.length-1);saveState(true);render()}
+    if(a==='choose-scenario'){state.scenario=el.dataset.scenario;awardXP('scenario-'+state.scenario,10,'scenario selected');saveState(true);render()}
+    if(a==='seed-moment'){seedMoment(el.dataset.scenario);render()}
+    if(a==='guided-q-prev'||a==='guided-q-next'){const i=+el.dataset.index;state.ui.momentQuestion[i]=clamp((state.ui.momentQuestion[i]||0)+(a==='guided-q-next'?1:-1),0,guidedFields.length-1);saveState(true);render()}
+    if(a==='analysis-q-prev'||a==='analysis-q-next'){const i=+el.dataset.index;state.ui.analysisQuestion[i]=clamp((state.ui.analysisQuestion[i]||0)+(a==='analysis-q-next'?1:-1),0,analysisQuestions.length-1);saveState(true);render()}
+    if(a==='paragraph-prev'||a==='paragraph-next'){state.ui.paragraphIndex=clamp((state.ui.paragraphIndex||0)+(a==='paragraph-next'?1:-1),0,2);saveState(true);render()}  
+    if(a==='use-generated-paragraph'||a==='regenerate-paragraph'){const i=+el.dataset.index;state.moments[i].paragraph=generateBodyParagraph(i);awardXP('generated-paragraph-'+i,10,'generated paragraph accepted');saveState(true);render()}
+    if(a==='starter')insertStarter(el.closest('.starter-bank')?.dataset.target,el.dataset.starter||'');
+    if(a==='build-guided-draft')buildGuidedDraft();
+    if(a==='build-assembled')buildAssembledDraft();
+    if(a==='copy-essay')copyText(state.essay.draft||$('#essayDraft')?.value||'','Essay copied.');
+    if(a==='download')downloadText();
+    if(a==='clear')clearAll();
+  };
+  stage.onchange=e=>{
+    const t=e.target;
+    if(t.name==='conceptReaction'){const l=literacies[state.ui.conceptIndex];state.cardReactions[l.id]=t.value;awardXP('concept-'+l.id,8,l.title.replace(' Digital Literacy','')+' explored');saveState(true);render();return}
+    if(quiz.some(q=>q[0]===t.name)){state.quizAnswers[t.name]=t.value;awardXP('quiz-'+t.name,8,'profile question answered');saveState(true);render();return}
+    if(t.dataset.action==='lit-toggle'){const i=+t.dataset.index,lit=t.dataset.lit,arr=state.moments[i].literacies;if(t.checked&&!arr.includes(lit))arr.push(lit);if(!t.checked)state.moments[i].literacies=arr.filter(x=>x!==lit);awardXP('lit-'+i+'-'+lit,6,'literacy tag connected');saveState(true);render();return}
+    if(t.dataset.bind&&t.type==='checkbox'){setPath(state,t.dataset.bind,t.checked);if(t.checked)awardXP('check-'+t.dataset.bind,3,'checklist item completed');saveState(true);render();return}
+    if(t.dataset.bind&&t.tagName==='SELECT'){setPath(state,t.dataset.bind,t.value);awardXP('select-'+t.dataset.bind,5,'choice saved');saveState(true);return}
+  };
+  stage.oninput=e=>{
+    const t=e.target;if(!t.dataset.bind)return;setPath(state,t.dataset.bind,t.value);
+    if(t.dataset.award){
+      const n=wc(t.value);
+      if(n>=20)awardXP(t.dataset.award,7,'thoughtful answer saved');
+      if((t.id==='guidedParagraph'||t.id==='trackParagraph')&&n>=120)awardXP(t.dataset.award+'-long',18,'paragraph developed');
+      if(t.id==='essayDraft'&&n>=350)awardXP(t.dataset.award+'-essay',25,'full draft developed');
+    }
+    const c=$(`[data-count="${t.id}"]`);if(c)c.textContent=wc(t.value);
+    if(t.id==='guidedAnswer'){
+      const live=$('#guidedLiveAnswer');
+      if(live)live.textContent=String(t.value||'_____');
+    }
+    saveState();
+  };
+}
 
-      function renderParagraphCards() {
-        $('#paragraphCards').innerHTML = state.moments.map((m, idx) => `
-          <div class="paragraph-card">
-            <h3>Moment ${idx + 1} paragraph</h3>
-            <p class="field-help">${esc(m.title || 'Untitled digital moment')}</p>
-            <div class="starter-bank" data-target="paragraph${idx}">
-              <button type="button" data-starter="One moment that taught me something about digital networks happened when ">Start</button>
-              <button type="button" data-starter="At first, I was trying to ">Goal</button>
-              <button type="button" data-starter="The confusing part was ">Challenge</button>
-              <button type="button" data-starter="I figured it out by ">Process</button>
-              <button type="button" data-starter="This experience changed how I understand ">Reflection</button>
-            </div>
-            <textarea id="paragraph${idx}" data-paragraph="${idx}" class="textarea-lg" placeholder="Write a detailed narrative paragraph here.">${esc(m.paragraph || '')}</textarea>
-            <div class="checklist">
-              ${paragraphChecklist.map((item, cidx) => `
-                <label><input type="checkbox" data-paragraph-check="${idx}:${cidx}" ${m.checklist[cidx] ? 'checked' : ''}> <span>${esc(item)}</span></label>
-              `).join('')}
-            </div>
-            <button type="button" class="btn secondary small" data-example="${idx}">See a strong example</button>
-          </div>
-        `).join('');
-      }
+function bindGlobalEvents(){
+  $('#screenJump').onchange=e=>goToScreen(+e.target.value);
+  const fb=$('#focusBtn'); if(fb) fb.onclick=toggleFocus;
+  $('#uxBtn').onclick=showHelp;$('#printBtn').onclick=()=>window.print();
+  $('#modalCloseBtn').onclick=closeModal;
+  $('#modalBackdrop').addEventListener('click',e=>{if(e.target.id==='modalBackdrop')closeModal()});
+  document.addEventListener('keydown',e=>{
+    const modalOpen=$('#modalBackdrop').classList.contains('show');
+    if(modalOpen&&e.key==='Tab')trapModalFocus(e);
+    if(e.key==='Escape'){if(modalOpen)closeModal();}
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();saveState(true);showToast('Saved locally.')}
+  });
+  window.addEventListener('beforeunload',()=>saveState(true));
+}
+function toggleFocus(){
+  document.body.classList.add('focus-mode');
+  showToast('Focus mode is the only view. Use View progress for XP and requirements.');
+}
+function canEnterScreen(target){
+  const screens=getScreens();
+  if(target<=state.currentScreen)return true;
+  for(let i=0;i<target;i++){if(!screens[i].complete())return false;}
+  return true;
+}
+function goToScreen(target){
+  target=clamp(target,0,getScreens().length-1);
+  if(!canEnterScreen(target)){showToast('Finish the required items before moving ahead.');return;}
+  state.currentScreen=target;saveState(true);render();focusScreenTitle();
+}
+function changeScreen(d){const screens=getScreens(),target=clamp(state.currentScreen+d,0,screens.length-1);if(target>state.currentScreen&&!screens[state.currentScreen].complete()){showToast('Complete this screen before continuing.');return;}goToScreen(target)}
+function focusScreenTitle(){setTimeout(()=>$('#screenTitle')?.focus(),0)}
+function updateJump(){const screens=getScreens();$('#screenJump').innerHTML=screens.map((s,i)=>`<option value="${i}" ${i===state.currentScreen?'selected':''}>${i+1}. ${esc(s.kicker)} — ${esc(s.title)}</option>`).join('')}
+function updateShell(){
+  state.xp=calculateXP();
+  const lvl=levelFromXP(state.xp),next=nextLevelTarget(lvl),prev=lvl===1?0:nextLevelTarget(lvl-1),toNext=clamp(Math.round((state.xp-prev)/(next-prev)*100),0,100);
+  $('#xpNumber').textContent=state.xp+' XP';$('#levelPill').textContent='Level '+lvl;$('#levelFill').style.width=toNext+'%';
+  const screens=getScreens(),complete=screens.filter(s=>s.complete()).length,pct=Math.round(complete/screens.length*100);
+  $('#progressFill').style.width=pct+'%';$('#progressBar').setAttribute('aria-valuenow',pct);$('#progressText').textContent=`${pct}% complete · ${complete} of ${screens.length} screens ready`;renderBadges();
+}
+function renderBadges(){const earned=new Set();literacies.forEach(l=>{if(state.moments.some(m=>m.literacies.includes(l.id))||state.cardReactions[l.id])earned.add(l.badge)});if(state.xp>=60)earned.add('Level 2 Learner');if(state.xp>=150)earned.add('Draft Builder');if(state.moments.some(m=>wc(m.paragraph)>=120))earned.add('Detail Builder');if(wc(state.essay.draft)>=350)earned.add('Narrative Connector');if(Object.values(state.review.checklist).filter(Boolean).length>=5)earned.add('Revision Ready');const all=[...literacies.map(l=>l.badge),'Level 2 Learner','Draft Builder','Detail Builder','Narrative Connector','Revision Ready'];$('#badgeRow').innerHTML=all.map(b=>`<span class="badge ${earned.has(b)?'earned':''}">${esc(b)}</span>`).join('')}
+function literacyCountsFromQuiz(){const counts=Object.fromEntries(literacies.map(l=>[l.id,0]));Object.values(state.quizAnswers).forEach(v=>{if(counts[v]!==undefined)counts[v]++});return counts}
+function profileAdvice(top){if(!top.length)return'Answer questions to reveal a profile.';const names=top.slice(0,2).map(([id])=>literacies.find(l=>l.id===id).title.replace(' Digital Literacy','')).join(' and ');return'Your answers point toward '+names+'. Look for moments where these strengths helped you read, write, evaluate, or participate online.'}
+function seedMoment(id){const s=scenarios.find(x=>x.id===id);if(!s)return;state.scenario=s.id;const m=state.moments[0];if(!m.title)m.title=s.title;if(!m.fields.where)m.fields.where=s.title+' digital space';if(!m.fields.trying)m.fields.trying=s.sample;if(!m.fields.challenge)m.fields.challenge='I needed to understand what was happening and decide how to respond.';m.literacies=Array.from(new Set([...m.literacies,...s.suggested]));awardXP('seed-'+s.id,15,'Moment 1 seeded');saveState(true);showToast('Scenario added to Moment 1.')}
+function buildGuidedDraft(){
+  state.essay.draft=generateFullGuidedDraft();
+  awardXP('build-guided-draft',25,'full draft built');saveState(true);render()
+}
+function cleanSentencePart(x,fallback){
+  return String(x||fallback||'').trim().replace(/[.]+$/,'')
+}
+function draftSlot(value,label){
+  const v=String(value||'').trim();
+  return v?cleanSentencePart(v):`[add ${label}]`;
+}
+function removeLeadingTo(x,fallback){
+  return cleanSentencePart(x,fallback).replace(/^to\s+/i,'');
+}
+function afterI(x,fallback){
+  return cleanSentencePart(x,fallback).replace(/^I\s+/i,'');
+}
+function momentOrdinal(i){return ['first','second','third'][i]||String(i+1)}
+function dimPhrase(ids){const names=ids.map(id=>literacies.find(l=>l.id===id)?.title.replace(' Digital Literacy','')).filter(Boolean);return names.length?names.join(' and '):'digital literacy'}
+function generateRoughMomentDraft(i){
+  const m=state.moments[i],f=m.fields,analysis=m.analysis||{},tagPhrase=dimPhrase(m.literacies),ord=momentOrdinal(i);
+  const when=draftSlot(f.when,'when this happened');
+  const where=draftSlot(f.where,'the tool, platform, website, app, or device');
+  const trying=removeLeadingTo(f.trying,'[add what you were trying to do]');
+  const who=draftSlot(f.who,'who was involved or who the audience was');
+  const challenge=draftSlot(f.challenge,'what confused, surprised, or challenged you');
+  const response=afterI(f.response,'[add what you did next]');
+  const helped=draftSlot(f.helped,'who or what helped you learn');
+  const learned=draftSlot(f.learned,'what this taught you about digital networks or your habits');
+  const sentences=[
+    `My ${ord} moment happened ${when}.`,
+    `I was using ${where}, and I was trying to ${trying}.`,
+    `The people involved, or the audience I had in mind, were ${who}.`,
+    `This became a digital literacy moment because ${challenge}.`,
+    `To respond, I ${response}.`,
+    `I learned with help from ${helped}.`,
+    `By the end, I understood that ${learned}.`
+  ];
+  if(m.literacies.length||analysis.dimension||analysis.learn){
+    const dimension=cleanSentencePart(analysis.dimension||analysis.learn,`this moment connects digital choices to audience, tools, information, access, or power`);
+    sentences.push(`This connects to ${tagPhrase} because ${dimension}.`);
+  }
+  if(analysis.look){
+    sentences.splice(3,0,`A specific detail I remember is that ${cleanSentencePart(analysis.look)}.`);
+  }
+  return sentences.join(' ');
+}
+function generateBodyParagraph(i){
+  const m=state.moments[i],f=m.fields,tagPhrase=dimPhrase(m.literacies),analysis=m.analysis||{},ord=momentOrdinal(i);
+  const title=cleanSentencePart(m.title,'a digital literacy moment');
+  const when=cleanSentencePart(f.when,'during a school or everyday digital task');
+  const where=cleanSentencePart(f.where,'a digital tool, platform, website, app, or device');
+  const trying=removeLeadingTo(f.trying,'complete a reading, writing, search, communication, or submission task');
+  const who=cleanSentencePart(f.who,'the people who would read, use, or respond to my digital text');
+  const challenge=cleanSentencePart(f.challenge,'I had to make choices instead of using the technology automatically');
+  const response=afterI(f.response,'slowed down, tried a strategy, and revised my approach');
+  const helped=cleanSentencePart(f.helped,'feedback, examples, platform clues, tutorials, or trial and error');
+  const learned=cleanSentencePart(f.learned,'digital spaces are designed and my choices affect how well I can participate in them');
+  const did=afterI(analysis.did,'made choices about what to click, write, revise, trust, or share');
+  const look=analysis.look?` A specific detail I remember is that ${cleanSentencePart(analysis.look)}.`:'';
+  const dimension=cleanSentencePart(analysis.dimension||analysis.learn,`this moment shows ${tagPhrase} because it connects digital choices to audience, tools, information, access, or power`);
+  return `My ${ord} moment, ${title}, happened ${when}. I was using ${where}, and I was trying to ${trying}. The audience or people involved were ${who}, so the task was not just about pressing the right button; it was about making choices that would work in that digital situation. The challenge was that ${challenge}.${look} To respond, I ${response}. I also learned from ${helped}, which helped me move from confusion toward a better strategy. In this moment, I ${did}. This experience connects to ${tagPhrase} because ${dimension}. Looking back, it taught me that ${learned}.`;
+}
+function generateFullGuidedDraft(){
+  const relationship=state.essay.relationship||'Digital networks have shaped how I read, write, communicate, and learn in school and in everyday life.';
+  const pattern=state.essay.pattern||'I moved from using digital spaces automatically to thinking more carefully about audience, information, tools, access, and power.';
+  const conclusion=state.essay.conclusion||'Together, these moments show that my digital literacy is still developing through practice, mistakes, feedback, and reflection.';
+  const bodies=state.moments.map((m,i)=>m.paragraph||generateBodyParagraph(i)).join('\n\n');
+  return `Title: My Digital Literacy Narrative\n\n${relationship} At first, I thought digital literacy mostly meant knowing how to use devices, apps, or websites. As I look across the three moments in this essay, I see a clearer pattern: ${pattern}\n\n${bodies}\n\n${conclusion} These experiences show me that digital literacy is more than technical skill. It includes rhetorical choices about audience and platform, cognitive choices about information and tools, critical awareness of power and access, and functional knowledge of how digital systems work. In the future, I want to approach digital spaces more intentionally by pausing, checking, revising, and asking who or what is shaping the communication in front of me.`;
+}
+function roughParagraphFromMoment(i){return generateBodyParagraph(i)}  
+function buildAssembledDraft(){const parts=[state.paragraphTrack.intro,state.moments[0].paragraph,state.moments[1].paragraph,state.moments[2].paragraph,state.paragraphTrack.conclusion].filter(Boolean);state.essay.draft='Title: My Digital Literacy Narrative\n\n'+parts.join('\n\n');awardXP('build-assembled-draft',25,'paragraphs assembled');saveState(true);render()}
+function insertStarter(id,text){const el=id?document.getElementById(id):null;if(!el)return;const s=el.selectionStart??el.value.length,e=el.selectionEnd??el.value.length;el.value=el.value.slice(0,s)+text+el.value.slice(e);el.focus();el.selectionStart=el.selectionEnd=s+text.length;el.dispatchEvent(new Event('input',{bubbles:true}))}
+function copyText(text,msg){if(!String(text||'').trim()){showToast('Nothing to copy yet.');return}if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(()=>showToast(msg)).catch(()=>fallbackCopy(text,msg));else fallbackCopy(text,msg)}
+function fallbackCopy(text,msg){const a=document.createElement('textarea');a.value=text;document.body.appendChild(a);a.select();let ok=false;try{ok=document.execCommand('copy')}catch{}a.remove();if(ok)showToast(msg);else openModal('Copy manually','Select the text below and copy it.',`<textarea class="manual-copy" readonly>${esc(text)}</textarea>`)}
+function downloadText(){const blob=new Blob([compileExport()],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='digital-literacy-narrative.txt';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);awardXP('download',10,'work exported')}
+function compileExport(){const lines=['Digital Literacy Narrative Builder Export','Track: '+(state.track==='guided'?'Guided Draft Builder':'Paragraph-by-Paragraph Practice'),'XP: '+state.xp,''];state.moments.forEach((m,i)=>{lines.push('Moment '+(i+1)+': '+(m.title||'Untitled'));guidedFields.forEach(([k,l])=>lines.push(l+' '+(m.fields[k]||'')));lines.push('Literacy dimensions: '+(m.literacies.join(', ')||'None selected'),'Analysis:');analysisQuestions.forEach(([k,l])=>lines.push('- '+l+' '+(m.analysis[k]||'')));lines.push('Paragraph:',m.paragraph||'','')});lines.push('Paragraph Track Introduction:',state.paragraphTrack.intro||'','','Paragraph Track Conclusion:',state.paragraphTrack.conclusion||'','','Essay Draft:',state.essay.draft||'','','Peer/Self Review Notes:',state.review.peerNotes||'');return lines.join('\n')}
+function clearAll(){const typed=prompt('This will permanently clear saved work from this browser. Type CLEAR to continue. Download a copy first if needed.');if(typed!=='CLEAR')return;localStorage.removeItem(STORAGE_KEY);location.reload()}
+function progressSummary(){state.xp=calculateXP();const screens=getScreens(),complete=screens.filter(s=>s.complete()).length,next=nextBenchmark(state.xp);return `Digital Literacy Narrative Progress
+Track: ${state.track}
+XP: ${state.xp}/600 (${xpBenchmarkLabel(state.xp)})
+Next benchmark: ${next?next.label+' at '+next.xp+' XP':'all benchmarks reached'}
+Current screen: ${state.currentScreen+1} of ${screens.length}
+Screens complete: ${complete}/${screens.length}
+Moments titled: ${state.moments.filter(m=>m.title).length}/3
+Paragraphs drafted: ${state.moments.filter(m=>wc(m.paragraph)>=100).length}/3
+Essay words: ${wc(state.essay.draft)}`}
 
-      function renderFinalChecklist() {
-        $('#finalChecklist').innerHTML = finalChecklistItems.map((item, idx) => `
-          <label><input type="checkbox" data-final-check="${idx}" ${state.review.checklist[idx] ? 'checked' : ''}> <span>${esc(item)}</span></label>
-        `).join('');
-      }
+function showProgress(){
+  state.xp=calculateXP();
+  const screens=getScreens(),complete=screens.filter(s=>s.complete()).length,pct=Math.round(complete/screens.length*100),next=nextBenchmark(state.xp);
+  const rows=XP_BENCHMARKS.map(b=>`<li class="${state.xp>=b.xp?'good':'warn'}"><strong>${b.label}: ${b.xp} XP</strong> — ${b.meaning}${state.xp>=b.xp?' ✓':''}</li>`).join('');
+  const reqs=screens.map((s,i)=>`<label><input type="checkbox" disabled ${s.complete()?'checked':''}><span>${i+1}. ${esc(s.kicker)} — ${esc(s.complete()?'Complete':s.hint||'In progress')}</span></label>`).join('');
+  openModal('Progress','XP is deterministic and based only on completed major requirements.',`<div class="grid-2"><div class="info-card"><h3>${state.xp}/600 XP · ${xpBenchmarkLabel(state.xp)}</h3><div class="mini-meter"><span style="width:${Math.round(state.xp/600*100)}%"></span></div><p class="field-help">${next?'Next: '+next.label+' at '+next.xp+' XP.':'All XP benchmarks reached.'}</p><h3>Benchmarks</h3><ul class="quality-list">${rows}</ul></div><div class="info-card"><h3>${pct}% complete · ${complete} of ${screens.length} screens ready</h3><div class="checklist">${reqs}</div></div></div>`);
+}
+function showHelp(){openModal('Help','This app saves locally in this browser only. Download your work before switching devices or clearing browser data.',`<ol class="quality-list"><li>Use the numbered step buttons and Back/Next buttons to move between screens.</li><li>The sentence-frame questions show the sentence your answer will enter, so your answers can become body paragraphs instead of disconnected notes.</li><li>The timeline orders your moments; the literacy map shows which digital literacy dimensions each moment supports.</li><li>Peer review prompts are clickable revision questions. Click one to place it in the notes box, then have a peer answer it or answer it yourself.</li><li>Use Download .txt on the Review screen to keep a copy outside this browser.</li><li>Progression is locked until the current screen requirements are complete. XP is deterministic and appears in View progress.</li></ol>`)}
+function openModal(title,subtitle,html){lastModalTrigger=document.activeElement;$('#modalTitle').textContent=title;$('#modalSubtitle').textContent=subtitle;$('#modalContent').innerHTML=html;$('#modalBackdrop').classList.add('show');$('#modalCloseBtn').focus()}
+function closeModal(){$('#modalBackdrop').classList.remove('show');if(lastModalTrigger&&typeof lastModalTrigger.focus==='function')lastModalTrigger.focus()}
+function trapModalFocus(e){const focusables=$$('#modalBackdrop button,#modalBackdrop [href],#modalBackdrop input,#modalBackdrop select,#modalBackdrop textarea,#modalBackdrop [tabindex]:not([tabindex="-1"])').filter(el=>!el.disabled&&el.offsetParent!==null);if(!focusables.length)return;const first=focusables[0],last=focusables[focusables.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}
+function showToast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>t.classList.remove('show'),2300)}
+function momentQuestionDone(i){const m=state.moments[i];return guidedFields.filter(([k])=>String(m.fields[k]||'').trim()).length+(m.title?1:0)}
+function analysisDone(i){const m=state.moments[i];return analysisQuestions.filter(([k])=>String(m.analysis[k]||'').trim()).length}
+function momentCompletion(i){const m=state.moments[i];let done=0,total=1+guidedFields.length+1+analysisQuestions.length+1;if(m.title)done++;guidedFields.forEach(([k])=>{if(m.fields[k])done++});if(m.literacies.length)done++;analysisQuestions.forEach(([k])=>{if(m.analysis[k])done++});if(m.paragraph)done++;return Math.round(done/total*100)}
+function momentPlainText(i){return generateRoughMomentDraft(i)}
+function renderMomentPreview(i){const text=momentPlainText(i);return text.trim()?esc(text):'<span class="placeholder">Your answers will appear here as a coherent rough mini-draft.</span>'}
+function renderQualityCheck(text,essayMode=false){const n=wc(text),target=essayMode?350:120,s=/\b(search|post|comment|email|source|platform|app|setting|notification|algorithm|audience|draft|edit|click|upload|privacy|link|result|caption|message|tool|feature)\b/i.test(text||''),r=/\b(learned|realized|understand|changed|taught|matters|because|now|future)\b/i.test(text||''),p=/\b(first|then|next|after|before|figured|tried|compared|checked|revised|asked|searched)\b/i.test(text||'');return `<ul class="quality-list"><li class="${n>=target?'good':'warn'}">${n} words ${n>=target?'✓':'· keep developing'}</li><li class="${s?'good':'warn'}">${s?'Includes digital specifics ✓':'Add digital specifics: platform, feature, search term, post, setting, or source.'}</li><li class="${p?'good':'warn'}">${p?'Shows a process ✓':'Show the steps you took, not just the result.'}</li><li class="${r?'good':'warn'}">${r?'Includes reflection ✓':'Add what you learned and why it matters.'}</li></ul>`}
+function tagHtml(id){const l=literacies.find(x=>x.id===String(id).toLowerCase());return l?`<span class="tag ${l.id}">${l.icon} ${esc(l.title.replace(' Digital Literacy',''))}</span>`:''}
 
-      function hydrateSimpleFields() {
-        $$('[data-key]').forEach(el => {
-          const path = el.dataset.key.split('.');
-          let val = state;
-          path.forEach(p => val = val ? val[p] : '');
-          el.value = val || '';
-        });
-        $('#patternSelect').value = state.essay.pattern || '';
-      }
+bindGlobalEvents();
+render();
 
-      function bindEvents() {
-        $$('[data-scroll]').forEach(btn => btn.onclick = () => scrollToSection(btn.dataset.scroll));
-        $('#printBtn').onclick = () => window.print();
-        $('#resetCardsBtn').onclick = () => { state.cardReactions = {}; saveState(); updateCardReactions(); showToast('Card reactions reset.'); };
-        $('#resetQuizBtn').onclick = () => { state.quizAnswers = {}; saveState(); renderQuiz(); bindEvents(); showToast('Quiz reset.'); };
-        $('#expandMomentsBtn').onclick = () => $$('#momentCards details').forEach(d => d.open = true);
-        $('#buildOutlineBtn').onclick = buildOutline;
-        $('#copyEssayBtn').onclick = copyEssay;
-        $('#downloadBtn').onclick = downloadText;
-        $('#clearBtn').onclick = clearAll;
-        $('#modalCloseBtn').onclick = closeModal;
-        $('#modalBackdrop').addEventListener('click', e => { if (e.target.id === 'modalBackdrop') closeModal(); });
-
-        $$('.flip-card').forEach(card => {
-          card.addEventListener('click', e => {
-            if (e.target.matches('.micro-actions button')) return;
-            card.classList.toggle('flipped');
-          });
-          card.addEventListener('keydown', e => {
-            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.classList.toggle('flipped'); }
-          });
-        });
-        $$('.micro-actions button').forEach(btn => btn.onclick = e => {
-          e.stopPropagation();
-          const group = btn.closest('[data-reaction-group]').dataset.reactionGroup;
-          state.cardReactions[group] = btn.dataset.reaction;
-          saveState(); updateCardReactions(); showToast('Reflection saved.');
-        });
-
-        $$('#quizGrid input[type="radio"]').forEach(input => input.onchange = () => {
-          state.quizAnswers[input.name] = input.value; saveState(); updateProfileResult();
-        });
-
-        $$('#scenarioList button').forEach(btn => btn.onclick = () => {
-          state.scenario = btn.dataset.scenario; saveState(); updateScenarioOutput(); bindScenarioUse();
-        });
-        bindScenarioUse();
-
-        $$('[data-moment-title]').forEach(input => input.oninput = () => {
-          state.moments[+input.dataset.momentTitle].title = input.value; saveState(); refreshLight();
-        });
-        $$('[data-moment-field]').forEach(area => area.oninput = () => {
-          const [idx, key] = area.dataset.momentField.split(':');
-          state.moments[+idx].fields[key] = area.value; saveState(); refreshLight();
-        });
-        $$('[data-literacy]').forEach(input => input.onchange = () => {
-          const [idx, lit] = input.dataset.literacy.split(':');
-          const arr = state.moments[+idx].literacies;
-          if (input.checked && !arr.includes(lit)) arr.push(lit);
-          if (!input.checked) state.moments[+idx].literacies = arr.filter(x => x !== lit);
-          saveState(); refreshLight();
-        });
-        $$('[data-analysis]').forEach(area => area.oninput = () => {
-          const [idx, key] = area.dataset.analysis.split(':');
-          state.moments[+idx].analysis[key] = area.value; saveState();
-        });
-        $$('[data-paragraph]').forEach(area => area.oninput = () => {
-          state.moments[+area.dataset.paragraph].paragraph = area.value; saveState(); refreshLight();
-        });
-        $$('[data-paragraph-check]').forEach(input => input.onchange = () => {
-          const [idx, cidx] = input.dataset.paragraphCheck.split(':');
-          state.moments[+idx].checklist[cidx] = input.checked; saveState();
-        });
-        $$('[data-final-check]').forEach(input => input.onchange = () => {
-          state.review.checklist[input.dataset.finalCheck] = input.checked; saveState();
-        });
-        $$('[data-key]').forEach(el => el.oninput = () => {
-          setPath(state, el.dataset.key.split('.'), el.value); saveState();
-        });
-        $('#patternSelect').onchange = () => { state.essay.pattern = $('#patternSelect').value; saveState(); };
-        $$('.starter-bank button').forEach(btn => btn.onclick = () => insertStarter(btn.closest('.starter-bank').dataset.target, btn.dataset.starter));
-        $$('[data-example]').forEach(btn => btn.onclick = () => showExample(+btn.dataset.example));
-      }
-
-      function bindScenarioUse() {
-        const btn = $('#useScenarioBtn');
-        if (!btn) return;
-        btn.onclick = () => {
-          const s = scenarios.find(x => x.id === state.scenario);
-          if (!s) return;
-          const m = state.moments[0];
-          if (!m.title) m.title = s.title;
-          if (!m.fields.trying) m.fields.trying = s.sample;
-          if (!m.fields.challenge) m.fields.challenge = 'I needed to understand what was happening in this digital space and decide how to respond.';
-          m.literacies = Array.from(new Set([...m.literacies, ...s.suggested.map(x => x.toLowerCase())]));
-          saveState(); renderMomentCards(); renderAnalysisCards(); bindEvents(); showToast('Scenario added to Moment 1.'); scrollToSection('#moments');
-        };
-      }
-
-      function setPath(obj, path, value) {
-        let ref = obj;
-        path.slice(0,-1).forEach(p => ref = ref[p]);
-        ref[path[path.length-1]] = value;
-      }
-
-      function refreshLight() {
-        updateProgress(); updateTimeline(); updateLiteracyStats(); updateBadges();
-        $$('#momentCards summary').forEach((summary, idx) => {
-          summary.querySelector('span:first-child').textContent = `Moment ${idx+1}: ${state.moments[idx].title || 'Untitled digital moment'}`;
-          summary.querySelector('.summary-meta').textContent = `${momentCompletion(idx)}% complete`;
-        });
-      }
-
-      function updateAllDerived() {
-        updateCardReactions(); updateProfileResult(); updateProgress(); updateTimeline(); updateLiteracyStats(); updateBadges(); updateNavActive();
-      }
-
-      function updateCardReactions() {
-        $$('.micro-actions').forEach(group => {
-          const id = group.dataset.reactionGroup;
-          $$('button', group).forEach(btn => btn.classList.toggle('selected', state.cardReactions[id] === btn.dataset.reaction));
-        });
-      }
-
-      function updateProfileResult() {
-        const counts = Object.fromEntries(literacies.map(l => [l.id, 0]));
-        Object.values(state.quizAnswers).forEach(v => { if (counts[v] !== undefined) counts[v]++; });
-        const answered = Object.keys(state.quizAnswers).length;
-        if (!answered) {
-          $('#profileResult').innerHTML = '<strong>Your profile will appear here.</strong><p>Choose options above to see which literacy dimensions may be strongest in your experiences.</p>';
-          return;
-        }
-        const top = Object.entries(counts).sort((a,b) => b[1] - a[1]).filter(x => x[1] > 0);
-        const topTags = top.map(([id]) => tagHtml(id)).join('');
-        const advice = top.slice(0,2).map(([id]) => {
-          const l = literacies.find(x => x.id === id);
-          return `Watch for moments where you ${l.question.replace('Did you ', '').replace('?','')}.`;
-        }).join(' ');
-        $('#profileResult').innerHTML = `<strong>Your current profile:</strong><div class="tags">${topTags}</div><p>${esc(advice)}</p>`;
-      }
-
-      function updateProgress() {
-        const checks = [];
-        checks.push(Object.keys(state.cardReactions).length >= 2);
-        checks.push(Object.keys(state.quizAnswers).length >= 2);
-        checks.push(Boolean(state.scenario));
-        checks.push(state.moments.every(m => m.title && Object.values(m.fields).filter(Boolean).length >= 4));
-        checks.push(state.moments.every(m => m.literacies.length && Object.values(m.analysis).filter(Boolean).length >= 2));
-        checks.push(state.moments.every(m => (m.paragraph || '').trim().length > 120));
-        checks.push(Boolean(state.essay.draft && state.essay.draft.length > 300));
-        checks.push(Object.values(state.review.checklist).filter(Boolean).length >= 4);
-        const percent = Math.round(checks.filter(Boolean).length / checks.length * 100);
-        $('#progressFill').style.width = percent + '%';
-        $('#progressLabel').textContent = `${percent}% complete · ${progressMessage(percent)}`;
-        $$('.step-pill').forEach((pill, idx) => {
-          pill.classList.toggle('done', checks[idx]);
-          pill.classList.toggle('active', idx === checks.findIndex(x => !x));
-        });
-      }
-
-      function progressMessage(p) {
-        if (p === 0) return 'Start by exploring the concepts.';
-        if (p < 40) return 'You are gathering material.';
-        if (p < 75) return 'Your narrative is taking shape.';
-        if (p < 100) return 'Almost ready for revision.';
-        return 'Complete draft cycle finished.';
-      }
-
-      function updateBadges() {
-        const earned = new Set();
-        literacies.forEach(l => {
-          if (state.moments.some(m => m.literacies.includes(l.id))) earned.add(l.badge);
-        });
-        if (state.moments.some(m => (m.paragraph || '').length > 300)) earned.add('Detail Builder');
-        if ((state.essay.draft || '').length > 300 || state.essay.pattern) earned.add('Narrative Connector');
-        $$('.badge').forEach(b => b.classList.toggle('earned', earned.has(b.dataset.badge)));
-      }
-
-      function momentCompletion(idx) {
-        const m = state.moments[idx];
-        const total = 1 + guidedFields.length + 1 + 4 + 1;
-        let done = 0;
-        if (m.title) done++;
-        guidedFields.forEach(([key]) => { if ((m.fields[key] || '').trim()) done++; });
-        if (m.literacies.length) done++;
-        ['did','look','how','learn'].forEach(k => { if ((m.analysis[k] || '').trim()) done++; });
-        if ((m.paragraph || '').trim()) done++;
-        return Math.round(done / total * 100);
-      }
-
-      function updateLiteracyStats() {
-        const counts = Object.fromEntries(literacies.map(l => [l.id, 0]));
-        state.moments.forEach(m => m.literacies.forEach(l => counts[l]++));
-        $('#literacyStats').innerHTML = literacies.map(l => `
-          <div class="stat-card">
-            <div class="tag ${l.id}">${l.icon} ${esc(l.title.replace(' Digital Literacy',''))}</div>
-            <h3 style="margin:.5rem 0 0;">${counts[l.id]} moment${counts[l.id] === 1 ? '' : 's'}</h3>
-          </div>
-        `).join('');
-      }
-
-      function updateTimeline() {
-        const html = state.moments.map((m, idx) => {
-          const tags = m.literacies.map(tagHtml).join('') || '<span class="field-help">No tags yet</span>';
-          const lesson = m.fields.learned || m.analysis.learn || 'Add what you learned to see it here.';
-          return `<div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-card"><strong>Moment ${idx+1}: ${esc(m.title || 'Untitled')}</strong><div class="tags">${tags}</div><p>${esc(lesson)}</p></div></div>`;
-        }).join('');
-        $('#timeline').innerHTML = html;
-      }
-
-      function tagHtml(id) {
-        const l = literacies.find(x => x.id === String(id).toLowerCase());
-        return l ? `<span class="tag ${l.id}">${l.icon} ${esc(l.title.replace(' Digital Literacy',''))}</span>` : '';
-      }
-
-      function insertStarter(targetId, starter) {
-        const el = document.getElementById(targetId);
-        if (!el) return;
-        const start = el.selectionStart || el.value.length;
-        const end = el.selectionEnd || el.value.length;
-        el.value = el.value.slice(0, start) + starter + el.value.slice(end);
-        el.focus();
-        el.selectionStart = el.selectionEnd = start + starter.length;
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-      }
-
-      function buildOutline() {
-        const relationship = state.essay.relationship || '[Explain your relationship with digital networks.]';
-        const pattern = state.essay.pattern || '[Name the pattern that connects your moments.]';
-        const conclusion = state.essay.conclusion || '[Explain how your understanding of digital literacy changed.]';
-        const body = state.moments.map((m, idx) => {
-          const tags = m.literacies.map(id => literacies.find(l => l.id === id)?.title.replace(' Digital Literacy','')).filter(Boolean).join(', ') || '[literacy dimension]';
-          const para = m.paragraph || `[Develop Moment ${idx+1}: include context, activity, process, specific details, and reflection.]`;
-          return `Body Paragraph ${idx+1} — ${m.title || 'Untitled moment'} (${tags})\n${para}`;
-        }).join('\n\n');
-        const draft = `Title: My Digital Literacy Narrative\n\nIntroduction\n${relationship}\n\nAcross these experiences, ${pattern.charAt(0).toLowerCase() + pattern.slice(1)}\n\n${body}\n\nConclusion\n${conclusion}\n\nTogether, these moments show that digital literacy develops through practice, reflection, and attention to how digital networks shape communication, information, and learning.`;
-        state.essay.draft = draft;
-        $('#essayDraft').value = draft;
-        saveState();
-        showToast('Outline built from your saved work.');
-      }
-
-      async function copyEssay() {
-        const text = $('#essayDraft').value;
-        if (!text.trim()) { showToast('There is no essay text to copy yet.'); return; }
-        try {
-          await navigator.clipboard.writeText(text);
-          showToast('Essay copied to clipboard.');
-        } catch (e) {
-          $('#essayDraft').select();
-          document.execCommand('copy');
-          showToast('Essay selected/copied if your browser allowed it.');
-        }
-      }
-
-      function downloadText() {
-        const text = compileExport();
-        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'digital-literacy-narrative.txt';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-        showToast('Text file downloaded.');
-      }
-
-      function compileExport() {
-        const parts = ['Digital Literacy Narrative Builder Export', ''];
-        state.moments.forEach((m, idx) => {
-          parts.push(`Moment ${idx+1}: ${m.title || 'Untitled'}`);
-          guidedFields.forEach(([key, label]) => parts.push(`${label} ${m.fields[key] || ''}`));
-          parts.push(`Literacies: ${m.literacies.join(', ') || 'None selected'}`);
-          parts.push(`Paragraph: ${m.paragraph || ''}`, '');
-        });
-        parts.push('Essay Draft', state.essay.draft || '', '', 'Peer/Self Review Notes', state.review.peerNotes || '');
-        return parts.join('\n');
-      }
-
-      function clearAll() {
-        const ok = confirm('Clear all saved work from this browser? This cannot be undone.');
-        if (!ok) return;
-        localStorage.removeItem(STORAGE_KEY);
-        location.reload();
-      }
-
-      function showExample(idx) {
-        $('#modalTitle').textContent = `Strong example for Moment ${idx + 1}`;
-        $('#modalSubtitle').textContent = 'Use this as a model for specificity, not as text to copy.';
-        $('#modalContent').innerHTML = `
-          <div class="prompt-block"><strong>Weak:</strong><p>I learned how to use Google better.</p></div>
-          <div class="prompt-block"><strong>Stronger:</strong><p>During my first semester, I was researching climate change for a class discussion post. At first, I clicked the first result I saw, but then I noticed it was marked as sponsored and came from an organization with a clear political agenda. I opened three other sources, checked who published them, and compared the evidence they used. That experience helped me understand that searching online is not just about finding information quickly; it is also about judging which information deserves trust.</p></div>
-          <p>This example includes context, a digital activity, a challenge, a process, specific details, and a learning outcome.</p>`;
-        $('#modalBackdrop').classList.add('show');
-      }
-
-      function closeModal() { $('#modalBackdrop').classList.remove('show'); }
-
-      function showToast(msg) {
-        const toast = $('#toast');
-        toast.textContent = msg;
-        toast.classList.add('show');
-        clearTimeout(showToast.timer);
-        showToast.timer = setTimeout(() => toast.classList.remove('show'), 2300);
-      }
-
-      function scrollToSection(selector) {
-        const el = document.querySelector(selector);
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-
-      function updateNavActive() {
-        const sections = ['#concepts','#profile','#finder','#moments','#analysis','#paragraphs','#essay','#review'].map(s => $(s));
-        const tabs = $$('.nav-tabs button');
-        const onScroll = () => {
-          const y = window.scrollY + 130;
-          let active = 0;
-          sections.forEach((s, i) => { if (s.offsetTop <= y) active = i; });
-          tabs.forEach((t, i) => t.classList.toggle('active', i === active));
-        };
-        window.removeEventListener('scroll', updateNavActive._handler || (()=>{}));
-        updateNavActive._handler = onScroll;
-        window.addEventListener('scroll', onScroll, { passive: true });
-        onScroll();
-      }
-
-      render();
-    })();
-  </script>
+})();
+</script>
 </body>
 </html>
