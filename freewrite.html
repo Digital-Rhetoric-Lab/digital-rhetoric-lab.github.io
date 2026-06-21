@@ -187,6 +187,8 @@
       height: 100%;
       border-radius: inherit;
       background: linear-gradient(90deg, var(--good), var(--accent));
+      transition: width 120ms linear, background 160ms ease;
+      will-change: width;
     }
 
     #fill.urgent {
@@ -653,6 +655,30 @@
         </div>
 
         <div class="field">
+          <label for="revisionInput">Revision minutes</label>
+          <input id="revisionInput" type="number" min="0" max="180" step="1" value="0" />
+          <div class="help">
+            After the writing timer ends, students must revise for this long before the final copy screen appears.
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="backspacesInput">Total backspaces</label>
+          <input id="backspacesInput" type="number" min="-1" max="500" step="1" value="0" />
+          <div class="help">
+            Total single-character backspaces allowed at the end of the draft. Use <strong>-1</strong> for unlimited total backspaces.
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="backspaceRunInput">Backspaces in a row</label>
+          <input id="backspaceRunInput" type="number" min="0" max="50" step="1" value="1" />
+          <div class="help">
+            Maximum consecutive backspaces before the student must type forward again. Use <strong>0</strong> to block all backspaces.
+          </div>
+        </div>
+
+        <div class="field">
           <label for="strictInput">Editing rule</label>
           <select id="strictInput">
             <option value="strict">Strict: block paste, cut, undo, delete</option>
@@ -683,10 +709,13 @@
         <code>prompt</code> or <code>p</code>,
         <code>autostart=1</code> or <code>start=1</code>,
         <code>read</code>,
+        <code>revise</code> or <code>revisionMinutes</code>,
+        <code>backspaces</code> or <code>b</code> (<code>-1</code> or <code>unlimited</code> for unlimited total),
+        <code>backspaceRun</code> or <code>br</code>,
         <code>strict=strict</code> or <code>strict=gentle</code>.
         <br />
         Example:
-        <code>?minutes=10&amp;keyEvery=8&amp;prompt=Write%20about%20a%20time%20you%20changed%20your%20mind.&amp;autostart=1&amp;read=12</code>
+        <code>?minutes=10&amp;keyEvery=8&amp;prompt=Write%20about%20a%20time%20you%20changed%20your%20mind.&amp;autostart=1&amp;read=12&amp;revise=5&amp;backspaces=unlimited&amp;backspaceRun=2</code>
       </div>
     </div>
   </dialog>
@@ -733,6 +762,9 @@
         minutesInput: $("minutesInput"),
         keyEveryInput: $("keyEveryInput"),
         readInput: $("readInput"),
+        revisionInput: $("revisionInput"),
+        backspacesInput: $("backspacesInput"),
+        backspaceRunInput: $("backspaceRunInput"),
         strictInput: $("strictInput"),
         promptInput: $("promptInput"),
         startButton: $("startButton"),
@@ -755,17 +787,25 @@
 
       const state = {
         active: false,
+        revising: false,
         paused: false,
         timerId: 0,
+        revisionTimerId: 0,
         readTimerId: 0,
         durationMs: 10 * 60 * 1000,
+        revisionDurationMs: 0,
         keyEveryMs: 8 * 1000,
         endAt: 0,
+        revisionEndAt: 0,
         lastKeyAt: 0,
         pausedAt: 0,
         lastLength: 0,
         keyStreak: 0,
         pauses: 0,
+        backspacesUsed: 0,
+        consecutiveBackspaces: 0,
+        allowedBackspacePending: false,
+        backspaceCountedPending: false,
         pauseAlreadyMarked: false,
         readEndsAt: 0,
         wordCountTimer: 0,
@@ -773,6 +813,9 @@
           minutes: 10,
           keyEvery: 8,
           readSeconds: 10,
+          revisionMinutes: 0,
+          allowedBackspaces: 0,
+          maxBackspacesInRow: 1,
           prompt: "I used to think writing was… but now I’m beginning to think…",
           strict: "strict"
         },
@@ -794,6 +837,18 @@
         return Math.min(max, Math.max(min, number));
       }
 
+      function parseBackspaceTotal(value) {
+        const normalized = String(value ?? "").trim().toLowerCase();
+        if (["-1", "unlimited", "infinite", "infinity", "inf", "all"].includes(normalized)) {
+          return -1;
+        }
+        return clamp(parseInt(value, 10), 0, 500);
+      }
+
+      function formatBackspaceLimit(value) {
+        return value < 0 ? "unlimited" : String(value);
+      }
+
       function setText(el, value, key) {
         value = String(value);
         if (state.lastUi[key] !== value) {
@@ -809,6 +864,24 @@
       function boolParam(value) {
         if (value == null) return false;
         return ["1", "true", "yes", "y", "on"].includes(String(value).trim().toLowerCase());
+      }
+
+      function getUrlParams() {
+        // Support links pasted with HTML entities, e.g. ?minutes=10&amp;keyEvery=4.
+        // Browsers only split query parameters on real ampersands, so normalize common escaped forms first.
+        const rawQuery = window.location.search.startsWith("?")
+          ? window.location.search.slice(1)
+          : window.location.search;
+        const normalizedQuery = rawQuery
+          .replace(/&amp;/gi, "&")
+          .replace(/&#38;/gi, "&")
+          .replace(/%26amp%3B/gi, "&");
+        const params = new URLSearchParams(normalizedQuery);
+        const cleaned = new URLSearchParams();
+        for (const [key, value] of params.entries()) {
+          cleaned.set(key.replace(/^amp;/i, ""), value);
+        }
+        return cleaned;
       }
 
       function formatTime(ms) {
@@ -876,16 +949,25 @@
         const minutes = clamp(parseInt(els.minutesInput.value, 10), 1, 180);
         const keyEvery = clamp(parseInt(els.keyEveryInput.value, 10), 2, 60);
         const readSeconds = clamp(parseInt(els.readInput.value, 10), 0, 120);
+        const revisionMinutes = clamp(parseInt(els.revisionInput.value, 10), 0, 180);
+        const allowedBackspaces = parseBackspaceTotal(els.backspacesInput.value);
+        const maxBackspacesInRow = clamp(parseInt(els.backspaceRunInput.value, 10), 0, 50);
         const strict = els.strictInput.value === "gentle" ? "gentle" : "strict";
 
         els.minutesInput.value = String(minutes);
         els.keyEveryInput.value = String(keyEvery);
         els.readInput.value = String(readSeconds);
+        els.revisionInput.value = String(revisionMinutes);
+        els.backspacesInput.value = String(allowedBackspaces);
+        els.backspaceRunInput.value = String(maxBackspacesInRow);
 
         state.settings = {
           minutes,
           keyEvery,
           readSeconds,
+          revisionMinutes,
+          allowedBackspaces,
+          maxBackspacesInRow,
           prompt: els.promptInput.value.trim(),
           strict
         };
@@ -894,7 +976,7 @@
       }
 
       function syncDurationPreview() {
-        if (!state.active) {
+        if (!state.active && !state.revising) {
           const minutes = clamp(parseInt(els.minutesInput.value, 10), 1, 180);
           setText(els.timeLeft, formatTime(minutes * 60 * 1000), "timeLeft");
         }
@@ -906,10 +988,12 @@
       }
 
       function updateButtons() {
-        els.startButton.disabled = state.active && !state.paused;
-        els.pauseButton.disabled = !state.active;
+        const inSession = state.active || state.revising;
+        els.startButton.disabled = inSession;
+        els.pauseButton.disabled = !inSession;
         els.finishButton.disabled = !state.active;
         els.pauseButton.textContent = state.paused ? "Resume" : "Pause";
+        els.finishButton.textContent = state.revising ? "Revising…" : "Finish";
       }
 
       function setWriterEnabled(enabled) {
@@ -944,12 +1028,12 @@
       }
 
       function setFill(progress, urgent) {
-        const rounded = Math.round(progress);
+        const smooth = Math.round(progress * 10) / 10;
 
-        if (state.lastUi.fillWidth !== rounded) {
-          state.lastUi.fillWidth = rounded;
-          els.fill.style.width = rounded + "%";
-          els.fill.parentElement.setAttribute("aria-valuenow", String(rounded));
+        if (state.lastUi.fillWidth !== smooth) {
+          state.lastUi.fillWidth = smooth;
+          els.fill.style.width = smooth + "%";
+          els.fill.parentElement.setAttribute("aria-valuenow", String(Math.round(smooth)));
         }
 
         if (state.lastUi.urgent !== urgent) {
@@ -1001,6 +1085,7 @@
         clearInterval(state.timerId);
 
         state.active = true;
+        state.revising = false;
         state.paused = false;
         state.durationMs = settings.minutes * 60 * 1000;
         state.keyEveryMs = settings.keyEvery * 1000;
@@ -1008,6 +1093,10 @@
         state.lastKeyAt = Date.now();
         state.keyStreak = 0;
         state.pauses = 0;
+        state.backspacesUsed = 0;
+        state.consecutiveBackspaces = 0;
+        state.allowedBackspacePending = false;
+        state.backspaceCountedPending = false;
         state.pauseAlreadyMarked = false;
 
         placePromptIfBlank(settings.prompt);
@@ -1030,7 +1119,7 @@
           moveCaretToEnd();
         });
 
-        state.timerId = setInterval(tick, 250);
+        state.timerId = setInterval(tick, 100);
         tick();
       }
 
@@ -1065,33 +1154,40 @@
       }
 
       function pauseOrResume() {
-        if (!state.active) return;
+        const inSession = state.active || state.revising;
+        if (!inSession) return;
 
         if (!state.paused) {
           state.paused = true;
           state.pausedAt = Date.now();
           setWriterEnabled(false);
           clearInterval(state.timerId);
+          clearInterval(state.revisionTimerId);
           setStatus("Paused.");
           setText(els.nextKey, "paused", "nextKey");
         } else {
           const pausedFor = Date.now() - state.pausedAt;
-          state.endAt += pausedFor;
-          state.lastKeyAt = Date.now();
-          state.pauseAlreadyMarked = false;
           state.paused = false;
-
           setWriterEnabled(true);
-          setStatus("Back in motion. Keep writing.");
 
-          state.timerId = setInterval(tick, 250);
+          if (state.active) {
+            state.endAt += pausedFor;
+            state.lastKeyAt = Date.now();
+            state.pauseAlreadyMarked = false;
+            setStatus("Back in motion. Keep writing.");
+            state.timerId = setInterval(tick, 100);
+            tick();
+          } else if (state.revising) {
+            state.revisionEndAt += pausedFor;
+            setStatus("Revision resumed. Improve clarity, correctness, and flow.");
+            state.revisionTimerId = setInterval(revisionTick, 100);
+            revisionTick();
+          }
 
           requestAnimationFrame(() => {
             els.writer.focus();
-            moveCaretToEnd();
+            if (state.active) moveCaretToEnd();
           });
-
-          tick();
         }
 
         updateButtons();
@@ -1101,9 +1197,69 @@
         if (!state.active) return;
 
         state.active = false;
+        state.revising = false;
         state.paused = false;
-
         clearInterval(state.timerId);
+        clearInterval(state.revisionTimerId);
+        clearInterval(state.readTimerId);
+
+        state.revisionDurationMs = state.settings.revisionMinutes * 60 * 1000;
+        if (state.revisionDurationMs > 0) {
+          startRevisionMode();
+        } else {
+          completeSession();
+        }
+      }
+
+      function startRevisionMode() {
+        state.revising = true;
+        state.paused = false;
+        state.revisionEndAt = Date.now() + state.revisionDurationMs;
+
+        setWriterEnabled(true);
+        updateButtons();
+        updateSmallStats();
+        updateWordCountNow();
+        setStatus("Revision mode: improve your draft until the timer finishes.");
+        setText(els.nextKey, "revise", "nextKey");
+        setFill(0, false);
+        closeDialog(els.settingsDialog);
+        closeDialog(els.doneDialog);
+
+        requestAnimationFrame(() => {
+          els.writer.focus();
+        });
+
+        clearInterval(state.revisionTimerId);
+        state.revisionTimerId = setInterval(revisionTick, 100);
+        revisionTick();
+      }
+
+      function revisionTick() {
+        if (!state.revising || state.paused) return;
+
+        const now = Date.now();
+        const remaining = state.revisionEndAt - now;
+        const elapsed = state.revisionDurationMs - Math.max(0, remaining);
+
+        setText(els.timeLeft, formatTime(remaining), "timeLeft");
+        setText(els.nextKey, "revise", "nextKey");
+        const progress = state.revisionDurationMs > 0
+          ? clamp((elapsed / state.revisionDurationMs) * 100, 0, 100)
+          : 100;
+        setFill(progress, remaining <= 30000);
+
+        if (remaining <= 0) {
+          completeSession();
+        }
+      }
+
+      function completeSession() {
+        state.active = false;
+        state.revising = false;
+        state.paused = false;
+        clearInterval(state.timerId);
+        clearInterval(state.revisionTimerId);
         clearInterval(state.readTimerId);
 
         setWriterEnabled(false);
@@ -1114,10 +1270,19 @@
         setText(els.timeLeft, "0:00", "timeLeft");
         setText(els.nextKey, "done", "nextKey");
         setFill(100, false);
-        setStatus("Done. Copy your draft, then revise elsewhere.");
+        setStatus("Done. Copy your revised draft.");
 
         const words = countWords(els.writer.value);
         const minutes = Math.round(state.durationMs / 60000);
+        const revisionMinutes = Math.round(state.revisionDurationMs / 60000);
+        const revisionPart = revisionMinutes > 0
+          ? ", then revised for " + revisionMinutes + " minute" + (revisionMinutes === 1 ? "" : "s")
+          : "";
+        const backspacePart = state.settings.allowedBackspaces !== 0 || state.settings.maxBackspacesInRow > 0
+          ? ", using " + state.backspacesUsed + " backspace" + (state.backspacesUsed === 1 ? "" : "s") +
+            " (total limit: " + formatBackspaceLimit(state.settings.allowedBackspaces) +
+            ", row limit: " + state.settings.maxBackspacesInRow + ")"
+          : "";
 
         els.summaryText.textContent =
           "You wrote " +
@@ -1128,27 +1293,30 @@
           minutes +
           " minute" +
           (minutes === 1 ? "" : "s") +
+          revisionPart +
           ", with " +
           state.pauses +
           " marked pause" +
           (state.pauses === 1 ? "" : "s") +
+          backspacePart +
           ".";
-
         els.exportBox.textContent = els.writer.value;
         openDialog(els.doneDialog);
       }
 
       function resetDraft({ ask = true } = {}) {
-        const shouldAsk = ask && (state.active || els.writer.value.trim().length > 0);
+        const shouldAsk = ask && (state.active || state.revising || els.writer.value.trim().length > 0);
 
         if (shouldAsk && !confirm("Reset this draft? The current text will be cleared.")) {
           return;
         }
 
         state.active = false;
+        state.revising = false;
         state.paused = false;
 
         clearInterval(state.timerId);
+        clearInterval(state.revisionTimerId);
         clearInterval(state.readTimerId);
         clearTimeout(state.wordCountTimer);
 
@@ -1158,6 +1326,10 @@
         state.lastLength = 0;
         state.keyStreak = 0;
         state.pauses = 0;
+        state.backspacesUsed = 0;
+        state.consecutiveBackspaces = 0;
+        state.allowedBackspacePending = false;
+        state.backspaceCountedPending = false;
         state.pauseAlreadyMarked = false;
 
         setWriterEnabled(false);
@@ -1181,6 +1353,20 @@
         return els.writer.selectionStart === end && els.writer.selectionEnd === end;
       }
 
+      function canUseAllowedBackspace() {
+        const totalAllowsMore = state.settings.allowedBackspaces < 0 || state.backspacesUsed < state.settings.allowedBackspaces;
+        const rowAllowsMore = state.consecutiveBackspaces < state.settings.maxBackspacesInRow;
+        return (
+          state.active &&
+          !state.paused &&
+          totalAllowsMore &&
+          rowAllowsMore &&
+          els.writer.selectionStart === els.writer.selectionEnd &&
+          isCaretAtEnd() &&
+          els.writer.value.length > 0
+        );
+      }
+
       function handleKeydown(event) {
         if (!state.active || state.paused) return;
 
@@ -1189,8 +1375,9 @@
         const ctrl = event.ctrlKey || event.metaKey;
         const strict = state.settings.strict;
 
+        const backspaceBlocked = key === "Backspace" && !canUseAllowedBackspace();
         const forbidden =
-          key === "Backspace" ||
+          backspaceBlocked ||
           key === "Delete" ||
           (ctrl && lower === "z") ||
           (ctrl && lower === "y") ||
@@ -1214,13 +1401,32 @@
           key === "PageDown";
 
         if (forbidden) {
-          blockEdit(event, "No deleting during freewriting. Keep moving forward.");
+          if (backspaceBlocked) {
+            const totalLimitHit = state.settings.allowedBackspaces >= 0 && state.backspacesUsed >= state.settings.allowedBackspaces;
+            const rowLimitHit = state.consecutiveBackspaces >= state.settings.maxBackspacesInRow;
+            const message = rowLimitHit
+              ? "Backspace row limit reached. Type forward before backspacing again."
+              : totalLimitHit
+                ? "Total backspace limit reached. Keep moving forward."
+                : "Backspace is only allowed at the end of the draft.";
+            blockEdit(event, message);
+          } else {
+            blockEdit(event, "No deleting during freewriting. Keep moving forward.");
+          }
           return;
         }
 
         if (strictForbidden) {
           blockEdit(event, "Strict mode blocks paste and select-all. Use the next word.");
           return;
+        }
+
+        if (key === "Backspace") {
+          // Some browsers/input methods do not fire beforeinput consistently for Backspace.
+          // Mark this as a potentially allowed one-character correction; the input handler
+          // will verify that exactly one character was removed before committing it.
+          state.allowedBackspacePending = true;
+          state.backspaceCountedPending = false;
         }
 
         if (navigation) {
@@ -1243,8 +1449,28 @@
           "historyRedo"
         ];
 
+        if (inputType === "deleteContentBackward" && canUseAllowedBackspace()) {
+          state.allowedBackspacePending = true;
+          if (!state.backspaceCountedPending) {
+            state.backspacesUsed += 1;
+            state.backspaceCountedPending = true;
+          }
+          return;
+        }
+
         if (blockedTypes.includes(inputType)) {
-          blockEdit(event, "No deleting during freewriting. Keep moving forward.");
+          if (inputType === "deleteContentBackward") {
+            const totalLimitHit = state.settings.allowedBackspaces >= 0 && state.backspacesUsed >= state.settings.allowedBackspaces;
+            const rowLimitHit = state.consecutiveBackspaces >= state.settings.maxBackspacesInRow;
+            const message = rowLimitHit
+              ? "Backspace row limit reached. Type forward before backspacing again."
+              : totalLimitHit
+                ? "Total backspace limit reached. Keep moving forward."
+                : "Backspace is only allowed at the end of the draft.";
+            blockEdit(event, message);
+          } else {
+            blockEdit(event, "No deleting during freewriting. Keep moving forward.");
+          }
           return;
         }
 
@@ -1260,22 +1486,51 @@
       }
 
       function handleInput() {
+        if (state.revising && !state.paused) {
+          updateWordCountNow();
+          setStatus("Revision changes saved. Keep improving the draft.");
+          return;
+        }
         if (!state.active || state.paused) return;
 
         const length = els.writer.value.length;
 
         if (length < state.lastLength) {
+          if (state.allowedBackspacePending && length === state.lastLength - 1) {
+            if (!state.backspaceCountedPending) {
+              state.backspacesUsed += 1;
+            }
+            state.allowedBackspacePending = false;
+            state.backspaceCountedPending = false;
+            state.consecutiveBackspaces += 1;
+            state.lastLength = length;
+            state.lastKeyAt = Date.now();
+            state.pauseAlreadyMarked = false;
+            const totalLeft = state.settings.allowedBackspaces < 0
+              ? "unlimited total"
+              : (state.settings.allowedBackspaces - state.backspacesUsed) + " total left";
+            const rowLeft = state.settings.maxBackspacesInRow - state.consecutiveBackspaces;
+            setStatus("Typo corrected. " + totalLeft + "; " + rowLeft + " in this row left before typing forward.");
+            scheduleWordCount();
+            tick();
+            return;
+          }
+
+          state.allowedBackspacePending = false;
+          state.backspaceCountedPending = false;
           els.writer.value = els.writer.value.slice(0, state.lastLength);
           moveCaretToEnd();
           showToast("Deletion blocked. Keep moving forward.");
           return;
         }
 
+        state.allowedBackspacePending = false;
+        state.backspaceCountedPending = false;
+        state.consecutiveBackspaces = 0;
         state.lastLength = length;
         state.lastKeyAt = Date.now();
         state.pauseAlreadyMarked = false;
         state.keyStreak += 1;
-
         setStatus("Good. Keep writing — polish comes later.");
         updateSmallStats();
         scheduleWordCount();
@@ -1283,12 +1538,15 @@
       }
 
       function applyUrlParams() {
-        const params = new URLSearchParams(window.location.search);
+        const params = getUrlParams();
 
         const minutes = params.get("minutes") ?? params.get("m");
         const keyEvery = params.get("keyEvery") ?? params.get("keyevery") ?? params.get("k");
         const prompt = params.get("prompt") ?? params.get("p");
         const read = params.get("read") ?? params.get("readSeconds");
+        const revision = params.get("revise") ?? params.get("revision") ?? params.get("revisionMinutes") ?? params.get("r");
+        const backspaces = params.get("backspaces") ?? params.get("allowedBackspaces") ?? params.get("b");
+        const backspaceRun = params.get("backspaceRun") ?? params.get("backspacesInRow") ?? params.get("maxBackspacesInRow") ?? params.get("br");
         const strict = params.get("strict") ?? params.get("mode");
 
         if (minutes != null) {
@@ -1307,6 +1565,15 @@
           els.readInput.value = String(clamp(parseInt(read, 10), 0, 120));
         }
 
+        if (revision != null) {
+          els.revisionInput.value = String(clamp(parseInt(revision, 10), 0, 180));
+        }
+        if (backspaces != null) {
+          els.backspacesInput.value = String(parseBackspaceTotal(backspaces));
+        }
+        if (backspaceRun != null) {
+          els.backspaceRunInput.value = String(clamp(parseInt(backspaceRun, 10), 0, 50));
+        }
         if (strict != null) {
           const normalized = String(strict).trim().toLowerCase();
           els.strictInput.value = normalized === "gentle" ? "gentle" : "strict";
@@ -1375,6 +1642,9 @@
       els.minutesInput.addEventListener("input", syncDurationPreview);
       els.keyEveryInput.addEventListener("input", readSettings);
       els.readInput.addEventListener("input", readSettings);
+      els.revisionInput.addEventListener("input", readSettings);
+      els.backspacesInput.addEventListener("input", readSettings);
+      els.backspaceRunInput.addEventListener("input", readSettings);
       els.strictInput.addEventListener("change", readSettings);
       els.promptInput.addEventListener("input", readSettings);
 
@@ -1424,3 +1694,4 @@
     })();
   </script>
 </body>
+</html>
