@@ -13,21 +13,14 @@
       --border: rgba(17, 24, 39, 0.14);
       --accent: #2563eb;
       --accent-dark: #1d4ed8;
+      --danger: #dc2626;
+      --success: #047857;
       --shadow: 0 14px 40px rgba(17, 24, 39, 0.12);
       --radius: 24px;
       --font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    html,
-    body {
-      margin: 0;
-      min-height: 100%;
-    }
-
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
     body {
       font-family: var(--font);
       color: var(--ink);
@@ -37,144 +30,99 @@
         linear-gradient(135deg, #f7efe2, #edf4ff 58%, #edfdf4);
       padding: 28px;
     }
-
-    main {
-      width: min(920px, 100%);
-      margin: 0 auto;
-    }
-
-    header {
-      margin: 42px 0 24px;
-    }
-
+    main { width: min(980px, 100%); margin: 0 auto; }
+    header { margin: 42px 0 24px; }
     .eyebrow {
-      color: var(--accent);
-      font-size: 0.82rem;
-      font-weight: 900;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      margin-bottom: 10px;
+      color: var(--accent); font-size: 0.82rem; font-weight: 900;
+      letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px;
     }
-
-    h1 {
-      margin: 0;
-      font-size: clamp(2.4rem, 7vw, 5rem);
-      line-height: 0.92;
-      letter-spacing: -0.07em;
+    h1 { margin: 0; font-size: clamp(2.4rem, 7vw, 5rem); line-height: 0.92; letter-spacing: -0.07em; }
+    .subtitle { max-width: 680px; margin: 18px 0 0; color: var(--muted); font-size: 1.1rem; line-height: 1.55; }
+    .top-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+    .edit-only[hidden] { display: none !important; }
+    body.edit-mode dialog::backdrop { backdrop-filter: none; }
+    .demo-list { display: grid; gap: 16px; margin-top: 28px; }
+    .archive-drawer {
+      border: 1px dashed var(--border); border-radius: var(--radius);
+      background: rgba(255, 248, 234, 0.58); box-shadow: var(--shadow); overflow: hidden;
     }
-
-    .subtitle {
-      max-width: 680px;
-      margin: 18px 0 0;
-      color: var(--muted);
-      font-size: 1.1rem;
-      line-height: 1.55;
+    .archive-drawer summary {
+      min-height: 58px; padding: 18px 22px; cursor: pointer; font-weight: 950;
+      color: var(--ink); list-style-position: inside;
     }
-
-    .demo-list {
-      display: grid;
-      gap: 16px;
-      margin-top: 28px;
+    .archive-drawer summary span { color: var(--muted); font-weight: 800; }
+    .archive-list { display: grid; gap: 16px; padding: 0 16px 16px; }
+    .archive-empty { color: var(--muted); padding: 0 22px 18px; }
+    .drag-hint { color: var(--muted); font-size: 0.86rem; font-weight: 800; margin-left: 8px; }
+    .demo-card[draggable="true"] { cursor: grab; }
+    .demo-card.dragging { opacity: 0.55; }
+    .demo-card.drag-over, .archive-drawer.drag-over {
+      outline: 3px solid rgba(37, 99, 235, 0.36); outline-offset: 4px;
     }
-
     .demo-card {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 18px;
-      align-items: center;
-      padding: 22px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      background: var(--panel);
-      box-shadow: var(--shadow);
+      display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: center;
+      padding: 22px; border: 1px solid var(--border); border-radius: var(--radius);
+      background: var(--panel); box-shadow: var(--shadow);
     }
-
-    .demo-card h2 {
-      margin: 0;
-      font-size: 1.35rem;
-      letter-spacing: -0.03em;
-    }
-
-    .demo-card p {
-      margin: 8px 0 0;
-      color: var(--muted);
-      line-height: 1.45;
-    }
-
-    .demo-meta {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
-
+    .demo-card h2 { margin: 0; font-size: 1.35rem; letter-spacing: -0.03em; }
+    .demo-card p { margin: 8px 0 0; color: var(--muted); line-height: 1.45; }
+    .demo-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
     .tag {
-      display: inline-flex;
-      align-items: center;
-      min-height: 28px;
-      padding: 4px 9px;
-      border-radius: 999px;
-      background: rgba(37, 99, 235, 0.09);
-      color: #1e3a8a;
-      font-size: 0.78rem;
-      font-weight: 800;
+      display: inline-flex; align-items: center; min-height: 28px; padding: 4px 9px;
+      border-radius: 999px; background: rgba(37, 99, 235, 0.09); color: #1e3a8a;
+      font-size: 0.78rem; font-weight: 800;
     }
-
-    .button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 128px;
-      min-height: 46px;
-      padding: 11px 16px;
-      border-radius: 15px;
-      color: white;
-      background: var(--accent);
-      text-decoration: none;
-      font-weight: 900;
-      box-shadow: 0 8px 22px rgba(37, 99, 235, 0.24);
-      transition: background 140ms ease, transform 140ms ease;
+    .launch-group { display: grid; gap: 10px; min-width: 190px; }
+    .version-picker {
+      width: 100%; min-height: 40px; border: 1px solid var(--border); border-radius: 12px;
+      padding: 8px 10px; background: rgba(255, 255, 255, 0.78); color: var(--ink); font: inherit;
+      font-weight: 750;
+    }
+    .button, button {
+      display: inline-flex; align-items: center; justify-content: center; min-height: 46px;
+      padding: 11px 16px; border-radius: 15px; border: 0; color: white; background: var(--accent);
+      text-decoration: none; font: inherit; font-weight: 900; cursor: pointer;
+      box-shadow: 0 8px 22px rgba(37, 99, 235, 0.24); transition: background 140ms ease, transform 140ms ease;
       white-space: nowrap;
     }
-
-    .button:hover {
-      background: var(--accent-dark);
-      transform: translateY(-1px);
+    .button:hover, button:hover { background: var(--accent-dark); transform: translateY(-1px); }
+    .button:active, button:active { transform: translateY(0); }
+    .secondary { background: #374151; box-shadow: 0 8px 22px rgba(55, 65, 81, 0.18); }
+    .secondary:hover { background: #1f2937; }
+    .danger { background: var(--danger); box-shadow: 0 8px 22px rgba(220, 38, 38, 0.18); }
+    .danger:hover { background: #b91c1c; }
+    .ghost { background: rgba(255, 255, 255, 0.78); color: var(--ink); border: 1px solid var(--border); box-shadow: none; }
+    .ghost:hover { background: white; }
+    dialog {
+      width: min(940px, calc(100% - 24px)); border: 1px solid var(--border); border-radius: 22px;
+      background: #fffaf0; box-shadow: 0 24px 90px rgba(17, 24, 39, 0.34); padding: 0;
     }
-
-    .button:active {
-      transform: translateY(0);
+    dialog::backdrop { background: rgba(17, 24, 39, 0.42); }
+    .modal-head, .modal-foot { padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--border); }
+    .modal-foot { border-bottom: 0; border-top: 1px solid var(--border); align-items: stretch; flex-wrap: wrap; }
+    .modal-body { padding: 20px; max-height: min(68vh, 720px); overflow: auto; }
+    .modal-head h2 { margin: 0; letter-spacing: -0.04em; }
+    .config-grid { display: grid; gap: 16px; }
+    .config-card { border: 1px solid var(--border); border-radius: 18px; background: rgba(255,255,255,0.68); padding: 16px; }
+    .config-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    label { display: grid; gap: 6px; color: var(--muted); font-size: 0.88rem; font-weight: 850; }
+    input, textarea {
+      width: 100%; border: 1px solid var(--border); border-radius: 12px; padding: 10px 11px;
+      background: white; color: var(--ink); font: inherit;
     }
-
-    footer {
-      margin: 28px 0 18px;
-      color: var(--muted);
-      font-size: 0.92rem;
-    }
-
-    code {
-      padding: 2px 5px;
-      border-radius: 7px;
-      background: rgba(255, 255, 255, 0.75);
-      color: #172554;
-    }
-
-    @media (max-width: 680px) {
-      body {
-        padding: 18px;
-      }
-
-      header {
-        margin-top: 24px;
-      }
-
-      .demo-card {
-        grid-template-columns: 1fr;
-      }
-
-      .button {
-        width: 100%;
-      }
+    textarea { resize: vertical; min-height: 76px; }
+    .versions { display: grid; gap: 10px; margin-top: 12px; }
+    .version-row { display: grid; grid-template-columns: 1fr 1.55fr auto; gap: 8px; align-items: end; }
+    .card-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .json-output { min-height: 220px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.87rem; }
+    footer { margin: 28px 0 18px; color: var(--muted); font-size: 0.92rem; }
+    code { padding: 2px 5px; border-radius: 7px; background: rgba(255, 255, 255, 0.75); color: #172554; }
+    .empty { color: var(--muted); padding: 20px; border: 1px dashed var(--border); border-radius: 18px; background: rgba(255,255,255,0.45); }
+    @media (max-width: 760px) {
+      body { padding: 18px; }
+      header { margin-top: 24px; }
+      .demo-card, .config-row, .version-row { grid-template-columns: 1fr; }
+      .button, button, .launch-group { width: 100%; }
     }
   </style>
 </head>
@@ -187,110 +135,459 @@
         A small collection of browser-based activities for writing practice.
         These demos are designed to run locally without requiring student accounts.
       </p>
+      <div class="top-actions edit-only" hidden>
+        <button type="button" id="openConfig">Configure demos</button>
+        <button type="button" class="secondary" id="copyConfig">Copy current JSON</button>
+      </div>
     </header>
 
-    <section class="demo-list" aria-label="Demo list">
-      <article class="demo-card">
-        <div>
-          <h2>Timed Freewrite</h2>
-          <p>
-            A one-minute no-delete freewriting sprint. Students get 12 seconds to read
-            the prompt, then the session autostarts. A keypress is expected every 4 seconds.
-          </p>
-          <div class="demo-meta" aria-label="Demo details">
-            <span class="tag">1 minute</span>
-            <span class="tag">Autostart</span>
-            <span class="tag">No-delete drafting</span>
-            <span class="tag">Prompt reading time</span>
-          </div>
-        </div>
+    <section class="demo-list" id="demoList" aria-label="Demo list"></section>
 
-        <a
-          class="button"
-          href="freewrite.html?minutes=1&keyEvery=4&prompt=Write about a time you changed your mind.&autostart=1&read=12&revise=1&backspaces=unlimited&backspaceRun=8"
-        >
-          Launch demo
-        </a>
-      </article>
-
-      <article class="demo-card">
-        <div>
-          <h2>Enhanced Module One</h2>
-          <p>
-            Module enhanced with gamified elements and more guides for students.
-          </p>
-          <div class="demo-meta" aria-label="Demo details">
-            <span class="tag">Gamified</span><span class="tag">Optional Elements</span><span class="tag">More Visual</span>
-          </div>
-        </div>
-
-<a
-          class="button"
-          href="module-one-enhanced.html"
-        >
-          Launch demo
-        </a>
-      </article>
-
-            <article class="demo-card">
-        <div>
-          <h2>Highly Gamified App</h2>
-          <p>
-            An app prototype to help students write with XP, badges, quizes, daily goals, and more.
-            Research finds this style may have mixed results, but worth prototyping anyways.
-          </p>
-          <div class="demo-meta" aria-label="Demo details">
-            <span class="tag">Very Gamified</span><span class="tag">Daily Goals</span><span class="tag">Highly Guided</span>
-          </div>
-        </div>
-
-<a
-          class="button"
-          href="gamified-writing-app.html"
-        >
-          Launch demo
-        </a>
-      </article>
-
-      
-            <article class="demo-card">
-        <div>
-          <h2>Commons Studio</h2>
-          <p>
-            A prototype of a community-based guided ressearch project. Improves on Canvas by not showing student names and being more interactive.
-          </p>
-          <div class="demo-meta" aria-label="Demo details">
-            <span class="tag">Slightly Gamified</span><span class="tag">Cooperative</span><span class="tag">Interactive</span>
-          </div>
-        </div>
-
-<a
-          class="button"
-          href="commons-studio.html"
-        >
-          Launch demo
-        </a>
-      </article>
-
-                  <article class="demo-card">
-        <div>
-          <h2>Professor Dashboard</h2>
-          <p>
-            A way to view stats and work submitted from the first module.
-          </p>
-          <div class="demo-meta" aria-label="Demo details">
-            <span class="tag">Stats</span><span class="tag">Time tracking</span><span class="tag">Skip amount tracked</span>
-          </div>
-        </div>
-
-<a
-          class="button"
-          href="mod1-prof-dashboard.html"
-        >
-          Launch demo
-        </a>
-      </article>
-      
-    </section>
+    <footer class="edit-only" hidden>
+      Edit demos with <code>Configure demos</code>, then copy the generated JSON and paste it into the
+      <code>CONFIG_JSON</code> block in this file.
+    </footer>
   </main>
+
+  <dialog id="configDialog" class="edit-only">
+    <form method="dialog">
+      <div class="modal-head">
+        <h2>Configure demos</h2>
+        <button class="ghost" value="close" type="submit">Close</button>
+      </div>
+    </form>
+    <div class="modal-body">
+      <div class="config-grid" id="configEditor"></div>
+      <div class="card-actions">
+        <button type="button" id="addDemo">Add demo</button>
+        <button type="button" class="secondary" id="generateJson">Generate JSON</button>
+      </div>
+      <h3>JSON to paste into <code>CONFIG_JSON</code></h3>
+      <textarea id="jsonOutput" class="json-output" spellcheck="false"></textarea>
+    </div>
+    <div class="modal-foot">
+      <button type="button" id="applyConfig">Apply changes on this page</button>
+      <button type="button" class="secondary" id="copyGeneratedJson">Copy generated JSON</button>
+      <button type="button" class="danger" id="resetConfig">Reset to file defaults</button>
+    </div>
+  </dialog>
+
+  <script id="CONFIG_JSON" type="application/json">
+[
+  {
+    "title": "Enhanced Module One",
+    "description": "Module enhanced with gamified elements and more guides for students.",
+    "tags": [
+      "Gamified",
+      "Optional Elements",
+      "More Visual"
+    ],
+    "archived": false,
+    "versions": [
+      {
+        "label": "Latest (v3)",
+        "href": "module-one-enhanced-v3.html"
+      },
+      {
+        "label": "Latest (v3, prof mode)",
+        "href": "module-one-enhanced-v3.html?prof=true"
+      },
+      {
+        "label": "v2",
+        "href": "module-one-enhanced-v2.html"
+      },
+      {
+        "label": "v1",
+        "href": "module-one-enhanced-v1.html"
+      }
+    ]
+  },
+  {
+    "title": "Timed Freewrite",
+    "description": "A one-minute no-delete freewriting sprint. Students get 12 seconds to read the prompt, then the session autostarts. A keypress is expected every 4 seconds.",
+    "tags": [
+      "1 minute",
+      "Autostart",
+      "No-delete drafting",
+      "Prompt reading time"
+    ],
+    "archived": false,
+    "versions": [
+      {
+        "label": "Latest",
+        "href": "freewrite.html?minutes=1&keyEvery=4&prompt=Write about a time you changed your mind.&autostart=1&read=12&revise=1&backspaces=unlimited&backspaceRun=8"
+      }
+    ]
+  },
+  {
+    "title": "Professor Dashboard",
+    "description": "A way to view stats and work submitted from the first module.",
+    "tags": [
+      "Stats",
+      "Time tracking",
+      "Skip amount tracked"
+    ],
+    "archived": false,
+    "versions": [
+      {
+        "label": "Latest (v2)",
+        "href": "mod1-prof-dashboard-v2.html"
+      },
+      {
+        "label": "v1",
+        "href": "mod1-prof-dashboard-v1.html"
+      }
+    ]
+  },
+  {
+    "title": "Highly Gamified App",
+    "description": "An app prototype to help students write with XP, badges, quizzes, daily goals, and more. Research finds this style may have mixed results, but worth prototyping anyways.",
+    "tags": [
+      "Very Gamified",
+      "Daily Goals",
+      "Highly Guided"
+    ],
+    "archived": true,
+    "versions": [
+      {
+        "label": "Latest",
+        "href": "gamified-writing-app.html"
+      }
+    ]
+  },
+  {
+    "title": "Commons Studio",
+    "description": "A prototype of a community-based guided research project. Improves on Canvas by not showing student names and being more interactive.",
+    "tags": [
+      "Slightly Gamified",
+      "Cooperative",
+      "Interactive"
+    ],
+    "archived": true,
+    "versions": [
+      {
+        "label": "Latest",
+        "href": "commons-studio.html"
+      }
+    ]
+  }
+]
+  </script>
+
+  <script>
+    const demoList = document.querySelector('#demoList');
+    const dialog = document.querySelector('#configDialog');
+    const editor = document.querySelector('#configEditor');
+    const jsonOutput = document.querySelector('#jsonOutput');
+    const isEditMode = new URLSearchParams(window.location.search).get('edit') === 'true';
+    document.body.classList.toggle('edit-mode', isEditMode);
+    document.querySelectorAll('.edit-only').forEach(element => {
+      element.hidden = !isEditMode;
+    });
+    const defaults = parseConfigFromFile();
+    let demos = structuredClone(defaults);
+
+    function parseConfigFromFile() {
+      try {
+        return JSON.parse(document.querySelector('#CONFIG_JSON').textContent.trim());
+      } catch (error) {
+        console.error('Could not parse CONFIG_JSON:', error);
+        return [];
+      }
+    }
+
+    function cleanDemo(demo) {
+      const tags = Array.isArray(demo.tags) ? demo.tags : String(demo.tags || '').split(',');
+      const versions = Array.isArray(demo.versions) ? demo.versions : [];
+      return {
+        title: String(demo.title || '').trim() || 'Untitled demo',
+        description: String(demo.description || '').trim(),
+        tags: tags.map(tag => String(tag).trim()).filter(Boolean),
+        archived: demo.archived === true,
+        versions: versions
+          .map(version => ({
+            label: String(version.label || '').trim() || 'Version',
+            href: String(version.href || '').trim()
+          }))
+          .filter(version => version.href)
+      };
+    }
+
+    function normalizeDemos(input) {
+      return input.map(cleanDemo).filter(demo => demo.versions.length);
+    }
+
+    function renderDemos() {
+      demoList.innerHTML = '';
+      const cleaned = normalizeDemos(demos);
+      demos = cleaned;
+      if (!cleaned.length) {
+        demoList.innerHTML = '<div class="empty">No demos configured yet. Use Configure demos to add one.</div>';
+        return;
+      }
+
+      const active = cleaned.map((demo, index) => ({ demo, index })).filter(item => !item.demo.archived);
+      const archived = cleaned.map((demo, index) => ({ demo, index })).filter(item => item.demo.archived);
+
+      active.forEach(item => demoList.append(demoCard(item.demo, item.index)));
+
+      if (archived.length || isEditMode) {
+        const drawer = document.createElement('details');
+        drawer.className = 'archive-drawer';
+        drawer.id = 'archiveDrawer';
+        drawer.innerHTML = `
+          <summary>Archived demos <span>(${archived.length})</span>${isEditMode ? '<span class="drag-hint">Drag demos here to archive</span>' : ''}</summary>
+        `;
+        const archiveList = document.createElement('div');
+        archiveList.className = 'archive-list';
+        if (archived.length) {
+          archived.forEach(item => archiveList.append(demoCard(item.demo, item.index)));
+        } else if (isEditMode) {
+          archiveList.innerHTML = '<div class="archive-empty">No archived demos yet.</div>';
+        }
+        drawer.append(archiveList);
+        demoList.append(drawer);
+
+        if (isEditMode) {
+          drawer.addEventListener('dragover', allowDrop);
+          drawer.addEventListener('dragenter', () => drawer.classList.add('drag-over'));
+          drawer.addEventListener('dragleave', event => {
+            if (!drawer.contains(event.relatedTarget)) drawer.classList.remove('drag-over');
+          });
+          drawer.addEventListener('drop', event => {
+            event.preventDefault();
+            drawer.classList.remove('drag-over');
+            const fromIndex = Number(event.dataTransfer.getData('text/plain'));
+            if (Number.isInteger(fromIndex)) moveDemo(fromIndex, cleaned.length, true);
+          });
+        }
+      }
+    }
+
+    function demoCard(demo, index) {
+      const article = document.createElement('article');
+      article.className = 'demo-card';
+      article.dataset.demoIndex = index;
+
+      if (isEditMode) {
+        article.draggable = true;
+        article.title = demo.archived ? 'Drag to reorder or move out of archive' : 'Drag to reorder or archive';
+        article.addEventListener('dragstart', event => {
+          article.classList.add('dragging');
+          event.dataTransfer.effectAllowed = 'move';
+          event.dataTransfer.setData('text/plain', String(index));
+        });
+        article.addEventListener('dragend', () => article.classList.remove('dragging'));
+        article.addEventListener('dragover', allowDrop);
+        article.addEventListener('dragenter', () => article.classList.add('drag-over'));
+        article.addEventListener('dragleave', () => article.classList.remove('drag-over'));
+        article.addEventListener('drop', event => {
+          event.preventDefault();
+          article.classList.remove('drag-over');
+          const fromIndex = Number(event.dataTransfer.getData('text/plain'));
+          if (Number.isInteger(fromIndex)) moveDemo(fromIndex, index, demo.archived === true);
+        });
+      }
+
+      const info = document.createElement('div');
+      const title = document.createElement('h2');
+      title.textContent = demo.title;
+      const desc = document.createElement('p');
+      desc.textContent = demo.description;
+      const meta = document.createElement('div');
+      meta.className = 'demo-meta';
+      meta.setAttribute('aria-label', 'Demo details');
+      demo.tags.forEach(tagText => {
+        const tag = document.createElement('span');
+        tag.className = 'tag';
+        tag.textContent = tagText;
+        meta.append(tag);
+      });
+      if (demo.archived) {
+        const archivedTag = document.createElement('span');
+        archivedTag.className = 'tag';
+        archivedTag.textContent = 'Archived';
+        meta.append(archivedTag);
+      }
+      info.append(title, desc, meta);
+
+      const launchGroup = document.createElement('div');
+      launchGroup.className = 'launch-group';
+      const launch = document.createElement('a');
+      launch.className = 'button';
+      launch.textContent = 'Launch demo';
+      launch.href = demo.versions[0].href;
+      if (demo.versions.length > 1) {
+        const picker = document.createElement('select');
+        picker.className = 'version-picker';
+        picker.setAttribute('aria-label', `${demo.title} version`);
+        demo.versions.forEach((version, versionIndex) => {
+          const option = document.createElement('option');
+          option.value = version.href;
+          option.textContent = versionIndex === 0 && !/latest/i.test(version.label)
+            ? `Latest - ${version.label}`
+            : version.label;
+          picker.append(option);
+        });
+        picker.addEventListener('change', () => launch.href = picker.value);
+        launchGroup.append(picker);
+      }
+      launchGroup.append(launch);
+      article.append(info, launchGroup);
+      return article;
+    }
+
+    function allowDrop(event) {
+      if (!isEditMode) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
+    }
+
+    function moveDemo(fromIndex, toIndex, archived) {
+      const list = normalizeDemos(demos);
+      if (fromIndex < 0 || fromIndex >= list.length) return;
+      const [moved] = list.splice(fromIndex, 1);
+      moved.archived = archived;
+      const adjustedToIndex = fromIndex < toIndex ? toIndex - 1 : toIndex;
+      list.splice(Math.max(0, Math.min(adjustedToIndex, list.length)), 0, moved);
+      demos = list;
+      renderDemos();
+    }
+
+    function renderEditor() {
+      editor.innerHTML = '';
+      demos.forEach((demo, demoIndex) => {
+        const card = document.createElement('section');
+        card.className = 'config-card';
+        card.dataset.demoIndex = demoIndex;
+        card.innerHTML = `
+          <div class="config-row">
+            <label>Title <input class="demo-title" value="${escapeHtml(demo.title || '')}"></label>
+            <label>Tags, comma-separated <input class="demo-tags" value="${escapeHtml((demo.tags || []).join(', '))}"></label>
+          </div>
+          <label style="margin-top:12px;"><span><input class="demo-archived" type="checkbox" ${demo.archived ? 'checked' : ''}> Archived</span></label>
+          <label style="margin-top:12px;">Description <textarea class="demo-description">${escapeHtml(demo.description || '')}</textarea></label>
+          <div class="versions"></div>
+          <div class="card-actions">
+            <button type="button" class="add-version">Add version</button>
+            <button type="button" class="danger remove-demo">Remove demo</button>
+          </div>
+        `;
+        const versionsEl = card.querySelector('.versions');
+        (demo.versions || []).forEach((version, versionIndex) => {
+          versionsEl.append(versionRow(version, versionIndex));
+        });
+        editor.append(card);
+      });
+      if (!demos.length) editor.innerHTML = '<div class="empty">No demos yet. Click Add demo to start.</div>';
+    }
+
+    function versionRow(version = {}, index = 0) {
+      const row = document.createElement('div');
+      row.className = 'version-row';
+      row.innerHTML = `
+        <label>Version label <input class="version-label" value="${escapeHtml(version.label || (index === 0 ? 'Latest' : 'Past version'))}"></label>
+        <label>URL / file path <input class="version-href" value="${escapeHtml(version.href || '')}" placeholder="example-demo.html"></label>
+        <button type="button" class="danger remove-version">Remove</button>
+      `;
+      return row;
+    }
+
+    function readEditor() {
+      return [...editor.querySelectorAll('.config-card')].map(card => ({
+        title: card.querySelector('.demo-title').value,
+        description: card.querySelector('.demo-description').value,
+        tags: card.querySelector('.demo-tags').value.split(',').map(tag => tag.trim()).filter(Boolean),
+        archived: card.querySelector('.demo-archived')?.checked === true,
+        versions: [...card.querySelectorAll('.version-row')].map(row => ({
+          label: row.querySelector('.version-label').value,
+          href: row.querySelector('.version-href').value
+        }))
+      }));
+    }
+
+    function updateJsonOutput() {
+      jsonOutput.value = JSON.stringify(normalizeDemos(readEditor()), null, 2);
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        const temp = document.createElement('textarea');
+        temp.value = text;
+        document.body.append(temp);
+        temp.select();
+        document.execCommand('copy');
+        temp.remove();
+      }
+    }
+
+    if (isEditMode) {
+    document.querySelector('#openConfig').addEventListener('click', () => {
+      renderEditor();
+      updateJsonOutput();
+      dialog.showModal();
+    });
+
+    document.querySelector('#addDemo').addEventListener('click', () => {
+      demos = readEditor();
+      demos.push({ title: 'New demo', description: '', tags: [], archived: false, versions: [{ label: 'Latest', href: '' }] });
+      renderEditor();
+      updateJsonOutput();
+    });
+
+    editor.addEventListener('click', event => {
+      if (event.target.classList.contains('add-version')) {
+        const versions = event.target.closest('.config-card').querySelector('.versions');
+        versions.append(versionRow({ label: 'Past version', href: '' }, versions.children.length));
+      }
+      if (event.target.classList.contains('remove-version')) {
+        event.target.closest('.version-row').remove();
+      }
+      if (event.target.classList.contains('remove-demo')) {
+        event.target.closest('.config-card').remove();
+      }
+      updateJsonOutput();
+    });
+
+    editor.addEventListener('input', updateJsonOutput);
+    document.querySelector('#generateJson').addEventListener('click', updateJsonOutput);
+
+    document.querySelector('#applyConfig').addEventListener('click', () => {
+      demos = normalizeDemos(readEditor());
+      renderEditor();
+      updateJsonOutput();
+      renderDemos();
+    });
+
+    document.querySelector('#resetConfig').addEventListener('click', () => {
+      demos = structuredClone(defaults);
+      renderEditor();
+      updateJsonOutput();
+      renderDemos();
+    });
+
+    document.querySelector('#copyGeneratedJson').addEventListener('click', () => {
+      updateJsonOutput();
+      copyText(jsonOutput.value);
+    });
+
+    document.querySelector('#copyConfig').addEventListener('click', () => {
+      copyText(JSON.stringify(normalizeDemos(demos), null, 2));
+    });
+    }
+
+    renderDemos();
+  </script>
 </body>
+</html>
