@@ -599,5 +599,131 @@ $('#openLogic').onclick=open;if($('#editShareLogic'))$('#editShareLogic').onclic
   requestAnimationFrame(()=>panel.querySelector('#closeLogic,button,input,select')?.focus({preventScroll:true}));
  };
 })();
-</script></body>
+</script><style id="v20-inline-editor">
+#undo,#redo,#openLogic{display:none!important}
+.componentEditorBar{display:flex;justify-content:flex-end;gap:6px;margin:-4px -4px 8px;padding:4px;background:#fff;border-bottom:1px solid #d6d6d0}
+.componentEditorBar button{min-height:32px;padding:5px 8px;font-size:11px}
+.componentColorRow{display:grid;grid-template-columns:1fr 54px;gap:8px;align-items:end}.componentColorRow input[type=color]{padding:3px;height:42px}
+.inlineLogic{margin-top:0}.inlineLogic .accBody{padding-bottom:80px}.inlineRule{border:1px solid var(--line);border-radius:10px;padding:12px;margin:10px 0;background:#fff}.inlineRuleHead{display:flex;gap:8px;align-items:center;justify-content:space-between}.inlineRuleHead input[type=text]{font-weight:800}.inlineRuleGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.inlineRule .field{margin:9px 0}.inlineRuleSummary{background:#eef2ff;border-left:4px solid var(--blue);padding:8px 10px;margin:8px 0;font-size:12px}.inlineRuleActions{display:flex;gap:6px;flex-wrap:wrap}.inlineRuleActions .danger{margin-left:auto}.inlineHint{font-size:12px;color:var(--muted);margin:7px 0 10px}.componentQuickEdit{box-shadow:0 0 0 3px var(--yellow)!important}
+@media(max-width:520px){.inlineRuleGrid{grid-template-columns:1fr}.componentEditorBar{position:sticky;top:0;z-index:2}}
+</style>
+<script id="v20-inline-editor-script">
+(function(){
+ const COLORS={blue:'#eef2ff',green:'#edf8f5',yellow:'#fff7c7',rose:'#fff1f4',white:'#ffffff',gray:'#f3f4f7'};
+ function safeColor(v){return /^#[0-9a-f]{6}$/i.test(String(v||''))?v:'#eef2ff'}
+ function ensureColors(){state.feed.posts.forEach(p=>p.components.forEach(c=>{if(!c.color)c.color=c.type==='notice'?'#fff7c7':c.type==='control'?'#edf8f5':'#eef2ff'}))}
+ ensureColors();
+ const originalCompHTML=compHTML;
+ compHTML=function(c,p,editable=true){
+   ensureColors();
+   let html=originalCompHTML(c,p,editable), color=safeColor(c.color);
+   html=html.replace(/^<(aside|div)([^>]*)>/,function(all,tag,attrs){
+     const style=/style=/.test(attrs)?'':` style="background:${color}"`;
+     return `<${tag}${attrs}${style}>`;
+   });
+   if(editable){
+     const bar=`<div class="componentEditorBar" aria-label="Component actions"><button class="mini inlineEditComp" type="button" data-edit-component="${esc(c.id)}" data-parent="${esc(p.id)}">Edit</button><button class="mini danger inlineRemoveComp" type="button" data-remove-component="${esc(c.id)}" data-parent="${esc(p.id)}">Remove</button></div>`;
+     html=html.replace(/^(<(?:aside|div)[^>]*>)/,'$1'+bar);
+   }
+   return html;
+ };
+ const originalEditBody=editBody;
+ editBody=function(){
+   let html=originalEditBody();
+   if(ui.selected.type==='component'){
+     const c=selectedComp();
+     const color=safeColor(c?.color);
+     const colorPanel=`<div class="field"><label for="componentColor">Component color</label><div class="componentColorRow"><select id="componentColorPreset"><option value="#eef2ff">Soft blue</option><option value="#edf8f5">Mint</option><option value="#fff7c7">Warm yellow</option><option value="#fff1f4">Rose</option><option value="#ffffff">White</option><option value="#f3f4f7">Light gray</option></select><input id="componentColor" type="color" value="${color}" aria-label="Custom component color"></div><small>Choose a preset or a custom color. Text contrast remains dark for readability.</small></div>`;
+     html=colorPanel+html;
+   }
+   return html;
+ };
+ function wireColor(){
+   const c=selectedComp(), picker=document.querySelector('#componentColor'), preset=document.querySelector('#componentColorPreset'); if(!c||!picker)return;
+   preset.value=Object.values(COLORS).includes(safeColor(c.color))?safeColor(c.color):'#eef2ff';
+   const apply=v=>update('Component color updated',()=>c.color=safeColor(v));
+   picker.onchange=e=>apply(e.target.value); preset.onchange=e=>apply(e.target.value);
+ }
+ const originalBindTools=bindTools;
+ bindTools=function(){originalBindTools();wireColor()};
+ function wireInlineComponents(){
+   document.querySelectorAll('[data-edit-component]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();ui.selected={type:'component',id:b.dataset.editComponent,parentId:b.dataset.parent};ui.openPanels.add('Edit content');render();requestAnimationFrame(()=>{document.querySelector('#componentColorPreset,#ctitle')?.focus();document.querySelector(`[data-id="${CSS.escape(b.dataset.editComponent)}"]`)?.classList.add('componentQuickEdit')})});
+   document.querySelectorAll('[data-remove-component]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();const p=state.feed.posts.find(x=>x.id===b.dataset.parent);if(!p)return;update('Component removed',()=>{p.components=p.components.filter(x=>x.id!==b.dataset.removeComponent);ui.selected={type:'post',id:p.id,parentId:null}})});
+ }
+ function triggerLabel(v){return ({'session-start':'Prototype opens','share':'Share selected','button':'Button selected','control':'Control changes','end':'Feed end visible','search':'Search submitted'})[v]||v}
+ function actionLabel(v){return ({popup:'Show message','hide-post':'Hide post','show-post':'Show post','toggle-control':'Toggle control','set-variable':'Remember value','increment-variable':'Increase count','change-order':'Change feed order','filter-search':'Filter search results'})[v]||v}
+ function inlineLogicHTML(){
+   ensureColors();
+   const rules=state.logic||[];
+   return `<section class="accordion inlineLogic" data-panel="Logic rules"><button class="accBtn" aria-expanded="${ui.openPanels.has('Logic rules')}"><span>Logic rules</span><span>⌄</span></button><div class="accBody" ${ui.openPanels.has('Logic rules')?'':'hidden'}><p class="inlineHint">Build behavior directly here. Each rule reads as: <b>When</b> an event happens, optionally check <b>If</b>, then choose what happens.</p><button class="mini" id="inlineAddRule" type="button">Add rule</button>${rules.map((r,i)=>{
+     const a=r.actions?.[0]||{type:'popup',targetId:'',value:''}, c=r.conditions?.[0]||null;
+     const posts=state.feed.posts.map(p=>`<option value="${esc(p.id)}" ${a.targetId===p.id?'selected':''}>${esc(p.author)}</option>`).join('');
+     const controls=state.feed.posts.flatMap(p=>p.components.filter(x=>x.type==='control').map(x=>`<option value="${esc(x.id)}" ${a.targetId===x.id?'selected':''}>${esc(p.author+' · '+x.title)}</option>`)).join('');
+     const targetNeeded=['hide-post','show-post','toggle-control'].includes(a.type);
+     const targetOptions=a.type==='toggle-control'?controls:posts;
+     return `<article class="inlineRule" data-inline-rule="${esc(r.id)}"><div class="inlineRuleHead"><label class="sr" for="ir-name-${r.id}">Rule name</label><input id="ir-name-${r.id}" type="text" data-ir-name value="${esc(r.name||'Untitled rule')}"><label><input type="checkbox" data-ir-enabled ${r.enabled!==false?'checked':''}> On</label></div><div class="inlineRuleSummary">When <b>${esc(triggerLabel(r.trigger))}</b>${c?`, if <b>${esc(conditionReadable(c))}</b>`:''}, then <b>${esc(actionLabel(a.type))}</b>.</div><div class="inlineRuleGrid"><div class="field"><label>When</label><select data-ir-trigger>${['session-start','share','button','control','end','search'].map(v=>`<option value="${v}" ${r.trigger===v?'selected':''}>${triggerLabel(v)}</option>`).join('')}</select></div><div class="field"><label>Then</label><select data-ir-action>${['popup','hide-post','show-post','toggle-control','set-variable','increment-variable','change-order','filter-search'].map(v=>`<option value="${v}" ${a.type===v?'selected':''}>${actionLabel(v)}</option>`).join('')}</select></div></div><div class="field"><label>Optional check</label><select data-ir-condition><option value="">No check</option>${['post-has-source','post-lacks-source','search-contains','search-equals','variable-equals','variable-at-least','control-is-on','control-is-off'].map(v=>`<option value="${v}" ${c?.type===v?'selected':''}>${esc(conditionReadable({type:v}))}</option>`).join('')}</select></div>${c?`<div class="inlineRuleGrid"><div class="field"><label>Check name / control ID</label><input data-ir-ckey value="${esc(c.key||'')}" placeholder="Example: shares"></div><div class="field"><label>Check value</label><input data-ir-cvalue value="${esc(c.value||'')}" placeholder="Example: 3"></div></div>`:''}${targetNeeded?`<div class="field"><label>Target</label><select data-ir-target><option value="">Choose a target</option>${targetOptions}</select></div>`:''}<div class="field"><label>${a.type==='popup'?'Message':'Value or setting'}</label><input data-ir-value value="${esc(a.value||'')}" placeholder="${a.type==='change-order'?'recent, popular, or sources':a.type==='set-variable'?'name=value':a.type==='increment-variable'?'counter=1':'Enter a value'}"></div><div class="inlineRuleActions"><button class="mini" data-ir-up ${i===0?'disabled':''}>Move up</button><button class="mini" data-ir-down ${i===rules.length-1?'disabled':''}>Move down</button><button class="mini danger" data-ir-remove>Remove rule</button></div></article>`}).join('')}</div></section>`;
+ }
+ function wireInlineLogic(){
+   const section=document.querySelector('.inlineLogic'); if(!section)return;
+   const head=section.querySelector('.accBtn'); head.onclick=()=>{const body=head.nextElementSibling;body.hidden=!body.hidden;head.setAttribute('aria-expanded',String(!body.hidden));body.hidden?ui.openPanels.delete('Logic rules'):ui.openPanels.add('Logic rules')};
+   document.querySelector('#inlineAddRule').onclick=()=>update('Rule added',()=>{state.logic.push({id:uid(),name:'New rule',enabled:true,trigger:'share',sourceId:'',conditions:[],conditionMode:'all',actions:[{id:uid(),type:'popup',targetId:'',value:'Add your message'}],frequency:'every'});ui.openPanels.add('Logic rules')});
+   section.querySelectorAll('[data-inline-rule]').forEach(card=>{const r=state.logic.find(x=>x.id===card.dataset.inlineRule);if(!r)return;const save=(label,fn)=>update(label,fn);card.querySelector('[data-ir-name]').onchange=e=>save('Rule name updated',()=>r.name=e.target.value);card.querySelector('[data-ir-enabled]').onchange=e=>save('Rule status updated',()=>r.enabled=e.target.checked);card.querySelector('[data-ir-trigger]').onchange=e=>save('Rule event updated',()=>{r.trigger=e.target.value;r.sourceId=''});card.querySelector('[data-ir-action]').onchange=e=>save('Rule action updated',()=>{r.actions=[{id:r.actions?.[0]?.id||uid(),type:e.target.value,targetId:'',value:e.target.value==='popup'?'Message':e.target.value==='change-order'?'recent':''}]});card.querySelector('[data-ir-condition]').onchange=e=>save('Rule check updated',()=>{r.conditions=e.target.value?[{id:uid(),type:e.target.value,key:'',value:''}]:[]});const c=r.conditions?.[0],a=r.actions?.[0];if(c){card.querySelector('[data-ir-ckey]').onchange=e=>save('Rule check updated',()=>c.key=e.target.value);card.querySelector('[data-ir-cvalue]').onchange=e=>save('Rule check updated',()=>c.value=e.target.value)}if(card.querySelector('[data-ir-target]'))card.querySelector('[data-ir-target]').onchange=e=>save('Rule target updated',()=>a.targetId=e.target.value);card.querySelector('[data-ir-value]').onchange=e=>save('Rule value updated',()=>a.value=e.target.value);card.querySelector('[data-ir-remove]').onclick=()=>save('Rule removed',()=>state.logic=state.logic.filter(x=>x.id!==r.id));card.querySelector('[data-ir-up]').onclick=()=>{const i=state.logic.indexOf(r);if(i>0)save('Rule moved',()=>[state.logic[i-1],state.logic[i]]=[state.logic[i],state.logic[i-1]])};card.querySelector('[data-ir-down]').onclick=()=>{const i=state.logic.indexOf(r);if(i<state.logic.length-1)save('Rule moved',()=>[state.logic[i+1],state.logic[i]]=[state.logic[i],state.logic[i+1]])}})
+ }
+ const originalRenderTools=renderTools;
+ renderTools=function(){originalRenderTools();document.querySelector('#toolPanels').insertAdjacentHTML('beforeend',inlineLogicHTML());wireInlineLogic()};
+ const originalRender=render;
+ render=function(){ensureColors();originalRender();wireInlineComponents()};
+ // Replace the obsolete full-screen entry point with the inline section.
+ document.querySelector('#openLogic')?.setAttribute('aria-hidden','true');
+ requestAnimationFrame(()=>{if(!document.querySelector('#editor').hidden)render()});
+})();
+</script>
+
+
+<style id="tutorial-v2-styles">
+.tourCard kbd{border:1px solid #b9bdc7;border-bottom-width:2px;border-radius:5px;background:#fafafa;padding:1px 5px;font:12px var(--sans)}
+.tourStepList{margin:12px 0 0;padding-left:20px}.tourStepList li{margin:6px 0}.tourDemo{margin-top:12px;padding:11px;border:1px solid #cbd5ff;background:#f7f9ff;border-radius:9px}.tourDemo b{display:block;margin-bottom:4px}.tourLiveTag{display:inline-block;background:#e5f5ee;color:#17664d;font-weight:900;font-size:10px;padding:3px 7px;border-radius:20px;margin-bottom:8px}.tourCard [data-tour-action]{width:100%;margin-top:10px}.tourCard:focus{outline:none}
+@media(max-width:700px){.tourCard{max-height:min(60vh,520px)}.tourStepList{padding-left:18px}.tourDemo{padding:9px}}
+</style>
+<script id="tutorial-v2">
+(function(){
+ const q=s=>document.querySelector(s), qa=s=>[...document.querySelectorAll(s)];
+ const onboard=q('#onboard'), welcome=q('#onboardWelcome'), card=q('#tourCard'), ring=q('.tourRing');
+ if(!onboard||!welcome||!card)return;
+ // Replace controls to detach legacy tutorial listeners cleanly.
+ ['startTour','beginTour','tourBack','tourSkip','tourNext'].forEach(id=>{const old=q('#'+id);if(old){const fresh=old.cloneNode(true);old.replaceWith(fresh)}});
+ qa('[data-tour-close]').forEach(old=>{const fresh=old.cloneNode(true);old.replaceWith(fresh)});
+ let step=0, target=null, restoreFocus=null, raf=0, autoShown=false;
+ const steps=[
+  {section:'Start',title:'Know the three parts of the workspace',text:'Editing tools are on the left, the live prototype is in the center, and the explanation panel is on the right.',target:'.workspace',tip:'On a small screen, use View live preview and Edit prototype to switch views.'},
+  {section:'Select',title:'Select the exact item you want to change',text:'Select a post or a component in the phone preview. The blue outline shows the current selection and the left sidebar updates to match.',target:'#feed',tip:'Select feed above the phone returns to feed-level settings.',action:'selectPost'},
+  {section:'Edit',title:'Edit content in the sidebar',text:'Open Edit content to change the selected post. Text and preview updates happen immediately and save locally.',target:'[data-panel="Edit content"]',tip:'For components, the inline Edit button opens the matching fields automatically.',action:'openEdit'},
+  {section:'Components',title:'Add, edit, color, or remove components',text:'Add components places an information card, button, notice, or user control beneath the selected post. Components also have inline Edit and Remove buttons.',target:'[data-panel="Add components"]',tip:'After adding a component, choose a preset or custom color under Edit content.',action:'openAdd'},
+  {section:'Rules',title:'Build logic directly in the sidebar',text:'Logic is no longer a separate wizard. Open Logic rules and read each rule as When, optional If, then Then.',target:'.inlineLogic',tip:'Change one field at a time and use the plain-language summary to verify the behavior.',action:'openLogicInline'},
+  {section:'Rules',title:'Create and validate a focused rule',text:'Add rule creates a safe starting rule. Choose the event, optional check, action, target when needed, and value or message.',target:'#inlineAddRule',tip:'This tutorial does not add a rule. Your project remains unchanged.',action:'openLogicInline',demo:'Example: When Share is selected, if the post lacks a source, then show a reminder.'},
+  {section:'Rules',title:'Order and test rules deliberately',text:'Rules run from top to bottom. Move specific rules before broad fallback rules, disable unfinished rules, and test both passing and failing conditions.',target:'[data-inline-rule]',tip:'Use Move up and Move down. Remove rule deletes only that rule.',action:'openLogicInline'},
+  {section:'Test',title:'Test the participant experience',text:'Present prototype opens the participant-facing version without editor controls. Test search, share, buttons, controls, and rules.',target:'#present',tip:'Reset session clears temporary choices and once-per-session behavior.',demo:'Recommended test: trigger the rule once, reset, then test the opposite condition.'},
+  {section:'Explain',title:'Connect design choices to evidence',text:'Explain records the problem, what changed and why, and the research supporting the design. The checklist shows what is still missing.',target:'#explainPanel',tip:'Write at least 30 meaningful characters in each explanation field.',action:'showExplain'},
+  {section:'Files',title:'Save a portable project copy',text:'Work saves automatically in this browser. Export downloads a project file for submission, backup, or transfer to another device.',target:'#exportProject',targetMobile:'.actions',tip:'Use Open to restore an exported .socialproject.json file.'},
+  {section:'Finish',title:'Use a reliable build cycle',text:'Select, edit, add behavior, test as a participant, explain the decision, and export a backup.',target:'#present',tip:'Help restarts this tutorial at any time.',final:true,demo:'Build cycle: Edit → Preview → Rules → Present → Explain → Export.'}
+ ];
+ function ensureEditor(){if(!q('#gallery').hidden)q('#startSocial').click();if(!q('#participant').hidden)q('#exitPresent').click()}
+ function setPanel(name,open=true){const sec=q(`[data-panel="${name}"]`);if(!sec)return;const body=sec.querySelector('.accBody'),btn=sec.querySelector('.accBtn');if(body){body.hidden=!open;btn?.setAttribute('aria-expanded',String(open));open?ui.openPanels.add(name):ui.openPanels.delete(name)}}
+ function action(name){ensureEditor();if(name==='selectPost'){if(innerWidth<=900)q('#editor')?.classList.add('showPreview');q('#feed .post')?.click()}if(name==='openEdit'){q('#editor')?.classList.remove('showPreview');setPanel('Edit content',true);}if(name==='openAdd')setPanel('Add components',true);if(name==='openLogicInline'){setPanel('Logic rules',true);q('.panel.left')?.scrollTo({top:q('.inlineLogic')?.offsetTop||0,behavior:'auto'})}if(name==='showExplain'){q('#explainPanel')?.classList.remove('closed');q('#explainPanel')?.setAttribute('data-user-opened','true')}}
+ function setMask(rect){const gap=8,w=innerWidth,h=innerHeight,x=Math.max(0,rect.left-gap),y=Math.max(0,rect.top-gap),r=Math.min(w,rect.right+gap),b=Math.min(h,rect.bottom+gap),set=(el,l,t,ww,hh)=>Object.assign(el.style,{left:l+'px',top:t+'px',width:Math.max(0,ww)+'px',height:Math.max(0,hh)+'px'});set(q('.tourMaskTop'),0,0,w,y);set(q('.tourMaskBottom'),0,b,w,h-b);set(q('.tourMaskLeft'),0,y,x,b-y);set(q('.tourMaskRight'),r,y,w-r,b-y);Object.assign(ring.style,{display:'block',left:x+'px',top:y+'px',width:(r-x)+'px',height:(b-y)+'px'})}
+ function fullMask(){const w=innerWidth,h=innerHeight,set=(el,l,t,ww,hh)=>Object.assign(el.style,{left:l+'px',top:t+'px',width:ww+'px',height:hh+'px'});set(q('.tourMaskTop'),0,0,w,h);qa('.tourMaskRight,.tourMaskBottom,.tourMaskLeft').forEach(el=>set(el,0,0,0,0));ring.style.display='none'}
+ function place(){if(card.hidden)return;if(!target||!target.isConnected||!target.getClientRects().length){fullMask();Object.assign(card.style,{left:Math.max(12,(innerWidth-card.offsetWidth)/2)+'px',top:Math.max(12,(innerHeight-card.offsetHeight)/2)+'px',right:'auto',bottom:'auto'});return}const t=target.getBoundingClientRect();setMask(t);if(innerWidth<700){card.style.left='12px';card.style.right='12px';card.style.top='auto';card.style.bottom='12px';return}const cw=card.offsetWidth,ch=card.offsetHeight,g=18,candidates=[{l:t.right+g,t:t.top},{l:t.left-cw-g,t:t.top},{l:t.left,t:t.bottom+g},{l:t.left,t:t.top-ch-g}];let best=candidates.map(p=>({l:Math.max(12,Math.min(p.l,innerWidth-cw-12)),t:Math.max(12,Math.min(p.t,innerHeight-ch-12))})).sort((a,b)=>{const ov=p=>Math.max(0,Math.min(p.l+cw,t.right)-Math.max(p.l,t.left))*Math.max(0,Math.min(p.t+ch,t.bottom)-Math.max(p.t,t.top));return ov(a)-ov(b)})[0];Object.assign(card.style,{left:best.l+'px',top:best.t+'px',right:'auto',bottom:'auto'})}
+ function schedule(){cancelAnimationFrame(raf);raf=requestAnimationFrame(place)}
+ function close(save=true){onboard.hidden=true;onboard.setAttribute('aria-hidden','true');welcome.hidden=false;card.hidden=true;document.body.style.overflow='';target=null;if(save&&q('#dontAutoTour')?.checked)localStorage.setItem('reframeTourDismissed','1');restoreFocus?.focus?.()}
+ function showWelcome(auto=false){restoreFocus=document.activeElement;autoShown=auto;onboard.hidden=false;onboard.setAttribute('aria-hidden','false');welcome.hidden=false;card.hidden=true;document.body.style.overflow='hidden';fullMask();q('#dontAutoTour').checked=false;requestAnimationFrame(()=>q('#beginTour').focus())}
+ function show(i){step=Math.max(0,Math.min(i,steps.length-1));const s=steps[step];action(s.action);welcome.hidden=true;card.hidden=false;onboard.hidden=false;q('#tourSection').textContent=s.section;q('#tourTitle').textContent=s.title;q('#tourText').textContent=s.text;q('#tourCount').textContent=`${step+1} of ${steps.length}`;q('#tourProgressBar').style.width=((step+1)/steps.length*100)+'%';q('#tourBack').disabled=step===0;q('#tourNext').textContent=s.final?'Finish':'Next';q('#tourTip').hidden=!s.tip;q('#tourTip').textContent=s.tip||'';card.querySelector('.tourDemo')?.remove();if(s.demo){const d=document.createElement('div');d.className='tourDemo';d.innerHTML='<span class="tourLiveTag">EXAMPLE</span><div></div>';d.querySelector('div').textContent=s.demo;q('#tourTip').after(d)}target=q(innerWidth<=600&&s.targetMobile?s.targetMobile:s.target);target?.scrollIntoView({block:'nearest',inline:'nearest',behavior:'auto'});schedule();requestAnimationFrame(()=>{card.setAttribute('tabindex','-1');q('#tourNext').focus({preventScroll:true})})}
+ q('#startTour').onclick=()=>showWelcome(false);q('#beginTour').onclick=()=>show(0);q('#tourNext').onclick=()=>steps[step].final?close():show(step+1);q('#tourBack').onclick=()=>show(step-1);q('#tourSkip').onclick=()=>close();qa('[data-tour-close]').forEach(x=>x.onclick=()=>close());
+ addEventListener('resize',schedule,{passive:true});document.addEventListener('scroll',()=>{if(!onboard.hidden&&!card.hidden)schedule()},{passive:true,capture:true});document.addEventListener('keydown',e=>{if(onboard.hidden)return;if(e.key==='Escape'){e.preventDefault();close()}else if(!card.hidden&&e.key==='ArrowRight'){e.preventDefault();q('#tourNext').click()}else if(!card.hidden&&e.key==='ArrowLeft'&&!q('#tourBack').disabled){e.preventDefault();q('#tourBack').click()}});
+ // Reliable one-time automatic welcome after entering the editor.
+ q('#startSocial').addEventListener('click',()=>setTimeout(()=>{if(!localStorage.getItem('reframeTourDismissed')&&!sessionStorage.getItem('reframeTourShown')){sessionStorage.setItem('reframeTourShown','1');showWelcome(true)}},180));
+ window.__tutorialV2={steps,showWelcome,show,close,getStep:()=>step,getTarget:()=>target};
+})();
+</script>
+
+</body>
 </html>
