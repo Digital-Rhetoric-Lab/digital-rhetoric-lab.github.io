@@ -853,5 +853,27 @@ $('#openLogic').onclick=open;if($('#editShareLogic'))$('#editShareLogic').onclic
 })();
 </script>
 
+
+<style id="custom-dropdown-placement-fix">
+[data-panel="Custom features"] .accBody{background:#fbf8ff}
+.customPlacementMarker{outline:3px solid #ffe45c!important;outline-offset:3px}
+</style>
+<script id="custom-dropdown-placement-fix-script">
+(function(){
+ const customPanelHTML=()=>`<section class="accordion" data-panel="Custom features"><button class="accBtn" type="button"><span>Custom features</span><span>⌄</span></button><div class="accBody" hidden>${customBody()}</div></section>`;
+ function targetPost(){return selectedPost()||state.feed.posts[0]}
+ function assignPlacement(feature){if(!feature)return;feature.parentPostId=targetPost()?.id||state.feed.posts[0]?.id||''}
+ function featureMarkup(x){const compare=x.layout==='comparison'?`<div class="featureComparison"><div><b>Source A</b><p>${esc(x.description)}</p></div><div><b>Source B</b><p>Add a comparison perspective.</p></div></div>`:`<p>${esc(x.description)}</p>`;return `<div class="customFeature inlineFeature" data-feature-id="${esc(x.id)}"><b>${esc(x.name)}</b>${compare}${x.image?`<img src="${esc(x.image)}" alt="Uploaded custom feature sketch" style="max-width:100%;max-height:160px;display:block;margin-top:6px">`:''}${x.action!=='none'?`<button class="mini customAction" data-custom="${esc(x.id)}">${x.action==='popup'?'Open feature':'Show more'}</button>`:''}</div>`}
+ function colocate(root){if(!root)return;root.querySelectorAll('[data-feature-id], .featurePanel').forEach(x=>x.remove());for(const x of state.feed.customFeatures){let post=x.parentPostId&&root.querySelector(`.post[data-id="${CSS.escape(x.parentPostId)}"]`);if(!post&&x.parentPostId){const idx=state.feed.posts.findIndex(p=>p.id===x.parentPostId);if(idx>=0)post=root.querySelectorAll('.post')[idx]}if(!post)post=root.querySelector('.post');if(post){post.insertAdjacentHTML('beforeend',featureMarkup(x))}}
+ root.querySelectorAll('.customAction').forEach(b=>b.onclick=()=>{const x=state.feed.customFeatures.find(y=>y.id===b.dataset.custom);if(x?.action==='popup'){const m=$('#modalRoot');m.innerHTML=`<div class="dialogBack"><div class="dialog" role="dialog" aria-modal="true"><h2>${esc(x.name)}</h2><p>${esc(x.description)}</p><button class="btn yellow" id="closeCustomFeature">Continue</button></div></div>`;$('#closeCustomFeature').onclick=()=>m.innerHTML='';$('#closeCustomFeature').focus()}else toast(x?.description||'Custom feature')})}
+ const oldTools=renderTools;renderTools=function(){oldTools();const notes=document.querySelector('[data-panel="Design notes"]');if(notes){const body=notes.querySelector('.accBody');if(body){body.innerHTML=`<b>Design notes</b>${field('Design note','designNote','','textarea')}<div class="field"><label for="designImage">Optional image for design notes</label><input id="designImage" type="file" accept="image/png,image/jpeg,image/webp,image/gif"></div><button class="mini" id="addDesignNote">Add design note</button><div id="designList"></div>`}if(!document.querySelector('[data-panel="Custom features"]'))notes.insertAdjacentHTML('beforebegin',customPanelHTML())}
+ document.querySelectorAll('[data-panel] .accBtn').forEach(btn=>{if(btn.dataset.customBound)return;btn.dataset.customBound='1';if(btn.closest('[data-panel="Custom features"]'))btn.onclick=()=>{const body=btn.closest('[data-panel]').querySelector('.accBody');body.hidden=!body.hidden}});bindTools();};
+ const oldBind=bindTools;bindTools=function(){oldBind();const add=$('#addCustom');if(add&&!add.dataset.placementBound){add.dataset.placementBound='1';add.addEventListener('click',()=>{const placementPostId=document.querySelector('#feed .post.selected')?.dataset.id||targetPost()?.id||state.feed.posts[0]?.id||'';setTimeout(()=>{const x=state.feed.customFeatures.at(-1);if(x)x.parentPostId=placementPostId;update('Feature placed',()=>{});renderFeed();const el=x&&document.querySelector(`#feed .post [data-feature-id="${CSS.escape(x.id)}"]`);if(el){el.classList.add('customPlacementMarker');el.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>el.classList.remove('customPlacementMarker'),1600)}},80)})}};
+ const oldFeed=renderFeed;renderFeed=function(){oldFeed();colocate($('#feed'))};
+ const oldPart=renderParticipant;renderParticipant=function(reset=false){oldPart(reset);colocate($('#participantFeed'))};
+ if(!$('#editor').hidden)render();
+})();
+</script>
+
 </body>
 </html>
